@@ -1,0 +1,14 @@
+# Python / Streamlit dashboard
+venv/
+__pycache__/
+*.pyc
+.streamlit/secrets.toml
+
+# Cached project data (baseline XER cache, user settings, uploaded trackers)
+/data/cache/*
+!/data/cache/.gitkeep
+/data/*.session.json
+
+# OS
+.DS_Store
+Thumbs.db
