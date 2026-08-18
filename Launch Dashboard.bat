@@ -23,6 +23,31 @@ echo   Jason Jackson - Programme Dashboard
 echo ============================================
 echo.
 
+REM --- Guard against Windows' 260-character path limit ---------
+REM Some packages (Streamlit included) install deeply-nested internal
+REM files. Combined with a long folder name - especially the doubled
+REM "reponame-branchname\reponame-branchname" folder that "Extract All"
+REM sometimes creates from a downloaded ZIP - this can blow past
+REM Windows' classic MAX_PATH limit and fail deep inside pip install
+REM with a confusing error. Catch it here instead, with a clear fix.
+for /f %%L in ('powershell -NoProfile -Command "(Get-Location).Path.Length" 2^>nul') do set CURDIR_LEN=%%L
+if defined CURDIR_LEN if %CURDIR_LEN% GTR 80 (
+    echo [WARNING] This folder's path is quite long:
+    echo             %cd%
+    echo.
+    echo           Windows has a 260-character path limit, and some packages
+    echo           install deeply-nested files that can exceed it from a long
+    echo           starting path - the failure shows up as a confusing pip
+    echo           error later, not a clear message here.
+    echo.
+    echo           To avoid this, move this whole folder somewhere short and
+    echo           shallow first - for example straight onto C:\ as C:\Dash -
+    echo           then run this file again from there.
+    echo.
+    echo           Continuing anyway in 5 seconds... ^(Ctrl+C to stop and move it^)
+    timeout /t 5 >nul
+)
+
 REM --- Locate a Python 3 launcher -----------------------------
 where py >nul 2>nul
 if %ERRORLEVEL%==0 (
