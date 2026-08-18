@@ -60,9 +60,20 @@ if errorlevel 1 (
 )
 
 REM --- Install / update required packages -----------------------
-echo [Setup] Checking required packages (this is quick if already installed) ...
-python -m pip install --upgrade pip -q
-python -m pip install -q -r requirements.txt
+echo [Setup] Checking required packages ...
+echo          If these are not installed yet, this downloads Streamlit,
+echo          pandas, NumPy and Plotly - it can take a few minutes the
+echo          first time depending on your internet connection. You will
+echo          see progress bars below while it works. Already installed?
+echo          This step finishes in a couple of seconds.
+echo.
+python -m pip install --upgrade pip
+if errorlevel 1 (
+    echo [ERROR] Failed to upgrade pip. Check your internet connection.
+    pause
+    exit /b 1
+)
+python -m pip install -r requirements.txt
 if errorlevel 1 (
     echo [ERROR] Failed to install required packages. Check your internet connection.
     pause
