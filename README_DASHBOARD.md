@@ -86,3 +86,30 @@ cycle just shows one point.
   no resource levelling) — flagged in-app where relevant.
 - If your XER export doesn't include TASKRSRC resource assignments,
   Module 6 falls back to a concurrent-activity-count proxy and says so.
+
+## Offline HTML dashboard (any laptop or phone)
+
+`schedule-dashboard.html` is a single self-contained file: no Python, no
+install, no internet. Your XER files are read inside the browser and never
+leave the device.
+
+1. Open `schedule-dashboard.html` in any modern browser (Chrome, Edge,
+   Safari, Firefox).
+2. Drop the **live** XER on the left and the **baseline** XER on the right.
+   You can select several live XERs at once (e.g. every monthly update) to
+   fill the trend charts straight away.
+3. Leave *Remember these files on this device* ticked and the next time you
+   open the page it restores them, so each cycle you only load the new
+   live update. Every update you load is added to the trend history.
+4. **Settings** sets contract dates, contract amount and currency per
+   project. **Print / PDF** prints all four tabs.
+
+Tabs: Overview (progress, delay, SPI, S-curve, forecast delay trend, work by
+status, longest path changes, progress by zone, data checks), Where we're
+behind, Drill down (searchable activity list with predecessors/successors),
+and Milestones, delay & recovery.
+
+On a phone: the simplest route is to host the file (e.g. GitHub Pages) and
+open the link. Parsing still happens on the phone. Android Chrome can also
+open the file directly from Downloads. iOS Files previews HTML without
+running scripts, so on iPhone use a hosted link.
