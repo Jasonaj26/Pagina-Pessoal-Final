@@ -1,0 +1,1055 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0b1220">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Schedule Dashboard</title>
+<style>
+:root{
+  --bg:#0b1220;--panel:#111a2e;--panel2:#0e1628;--line:#1f2b46;--line2:#2a3858;
+  --text:#e6ecf7;--muted:#8a97b2;--faint:#5d6a86;
+  --blue:#38bdf8;--red:#f0506e;--green:#34d399;--amber:#fbbf24;--plan:#8ea0c6;--plan2:#5b6b8f;--violet:#a78bfa;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font:14px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,Helvetica,Arial,sans-serif;-webkit-text-size-adjust:100%}
+button,input,select{font:inherit;color:inherit}
+a{color:var(--blue)}
+.wrap{max-width:1400px;margin:0 auto;padding:16px}
+header.top{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;justify-content:space-between}
+h1{font-size:22px;margin:0 0 6px;font-weight:700;letter-spacing:-.2px}
+.sub{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:var(--muted);font-size:12px}
+.dd{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--blue);border-radius:8px;padding:5px 10px;background:#0d1a2f}
+.dd .dot{width:7px;height:7px;border-radius:50%;background:var(--blue)}
+.dd small{font-size:10px;letter-spacing:.8px;color:var(--muted);text-transform:uppercase}
+.dd b{font-size:16px;color:var(--text)}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.btn{background:var(--panel);border:1px solid var(--line2);border-radius:8px;padding:7px 12px;cursor:pointer;white-space:nowrap}
+.btn:hover{border-color:var(--blue)}
+.btn.primary{background:#0c4a6e;border-color:var(--blue)}
+select.btn{padding:6px 8px}
+nav.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin:14px 0 14px;overflow-x:auto;scrollbar-width:none}
+nav.tabs button{background:none;border:0;border-bottom:2px solid transparent;padding:9px 12px;color:var(--muted);cursor:pointer;white-space:nowrap;font-weight:600;font-size:13px}
+nav.tabs button.on{color:var(--blue);border-bottom-color:var(--blue)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;min-width:0}
+.panel h3{margin:0;font-size:14px;font-weight:700}
+.ph{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.hint{color:var(--muted);font-size:11.5px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:10px}
+.kpi{background:linear-gradient(180deg,#131d33,#0f1729);border:1px solid var(--line);border-left:3px solid var(--blue);border-radius:10px;padding:12px 14px;min-height:150px}
+.kpi.red{border-left-color:var(--red);background:linear-gradient(180deg,#1d1526,#111729)}
+.kpi.green{border-left-color:var(--green)}
+.kpi.amber{border-left-color:var(--amber)}
+.kpi .t{display:flex;justify-content:space-between;align-items:center;color:var(--muted);font-size:12px;margin-bottom:8px}
+.tag{font-size:10.5px;padding:2px 8px;border-radius:6px;background:#3a1626;color:#ff8aa0}
+.tag.g{background:#0f3b2e;color:#6ee7b7}.tag.a{background:#3d300c;color:#fcd34d}.tag.b{background:#0c3550;color:#7dd3fc}
+.big{font-size:26px;font-weight:700;letter-spacing:-.5px}
+.lbl{color:var(--muted);font-size:11px;margin-top:8px}
+.val{font-weight:700;font-size:15px}
+.r{color:var(--red)}.g{color:var(--green)}.b{color:var(--blue)}.a{color:var(--amber)}.m{color:var(--muted)}
+.kv{display:grid;grid-template-columns:1fr auto;gap:5px 10px;font-size:12px;align-items:baseline}
+.kv span:nth-child(odd){color:var(--muted)}
+.kv span:nth-child(even){text-align:right;font-weight:600}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+.chip{border:1px solid var(--line2);border-radius:999px;padding:4px 11px;font-size:12px;color:var(--muted);background:var(--panel2)}
+.chip b{color:var(--text)}.chip .y{color:var(--amber);font-weight:700}
+.grid{display:grid;gap:10px;margin-top:10px}
+.g21{grid-template-columns:minmax(0,2fr) minmax(0,1fr)}
+.g11{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+.stack{display:grid;gap:10px;align-content:start;min-width:0}
+@media (max-width:900px){.g21,.g11{grid-template-columns:minmax(0,1fr)}}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:11.5px;color:var(--muted);margin-top:6px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.chart{position:relative;width:100%}
+.chart svg{display:block;overflow:visible}
+.tip{position:fixed;pointer-events:none;background:#0a1222ee;border:1px solid var(--line2);border-radius:8px;padding:7px 9px;font-size:12px;z-index:50;display:none;max-width:260px}
+.tip b{display:block;margin-bottom:3px}
+.stbar{display:flex;height:22px;border-radius:5px;overflow:hidden;background:#24304d;cursor:pointer;font-size:10.5px;font-weight:700}
+.stbar div{display:flex;align-items:center;justify-content:center;min-width:0;overflow:hidden;white-space:nowrap}
+.strow{display:flex;justify-content:space-between;align-items:center;padding:6px 4px;font-size:12.5px;cursor:pointer;border-radius:6px}
+.strow:hover{background:#17223b}
+.sq{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:8px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{color:var(--muted);font-weight:600;text-align:left;padding:6px 6px;border-bottom:1px solid var(--line);white-space:nowrap;font-size:11px}
+td{padding:6px 6px;border-bottom:1px solid #18233c;vertical-align:top}
+tr.click{cursor:pointer}tr.click:hover td{background:#15203a}
+tr.sel td{background:#14294a}
+td.n,th.n{text-align:right;white-space:nowrap}
+.code{font-weight:700;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11.5px;white-space:nowrap}
+.tscroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+th.sort{cursor:pointer}th.sort:hover{color:var(--text)}
+.zbar{position:relative;height:16px;min-width:90px}
+.zbar .p{position:absolute;left:0;top:0;height:6px;border-radius:2px;background:var(--plan2)}
+.zbar .ac{position:absolute;left:0;top:8px;height:7px;border-radius:2px}
+.drop{border:1.5px dashed var(--line2);border-radius:12px;padding:22px;text-align:center;cursor:pointer;background:var(--panel2);transition:.15s}
+.drop:hover,.drop.over{border-color:var(--blue);background:#0d1b31}
+.drop h4{margin:4px 0 6px;font-size:15px}
+.drop .fn{margin-top:8px;font-size:12px;color:var(--green);word-break:break-all}
+.drop input{display:none}
+.intro{max-width:880px;margin:30px auto}
+.intro p{color:var(--muted)}
+.flags li{margin:4px 0}
+.flag{display:flex;gap:10px;align-items:flex-start;padding:7px 0;border-bottom:1px solid #18233c;font-size:12.5px}
+.flag .dotf{flex:none;width:8px;height:8px;border-radius:50%;margin-top:5px}
+.filters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;align-items:center}
+.filters input[type=search]{flex:1 1 200px;background:var(--panel2);border:1px solid var(--line2);border-radius:8px;padding:7px 10px;min-width:0}
+.filters label{font-size:12px;color:var(--muted);display:flex;gap:5px;align-items:center}
+.pill{display:inline-block;padding:1px 7px;border-radius:5px;font-size:10.5px;font-weight:700}
+.pill.c{background:#0f3b2e;color:#6ee7b7}.pill.i{background:#0c3550;color:#7dd3fc}.pill.n{background:#26314b;color:#a9b4cc}.pill.k{background:#3a1626;color:#ff8aa0}
+.detail{margin-top:10px}
+.modal{position:fixed;inset:0;background:#000a;display:none;align-items:center;justify-content:center;z-index:60;padding:16px}
+.modal.on{display:flex}
+.modal .box{background:var(--panel);border:1px solid var(--line2);border-radius:12px;padding:18px;width:100%;max-width:520px;max-height:90vh;overflow:auto}
+.form{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.form label{display:grid;gap:4px;font-size:12px;color:var(--muted)}
+.form input,.form select{background:var(--panel2);border:1px solid var(--line2);border-radius:7px;padding:7px 9px;width:100%}
+@media (max-width:520px){.form{grid-template-columns:1fr}.big{font-size:23px}h1{font-size:19px}.wrap{padding:12px}}
+.mini{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.mini .panel{padding:12px}
+.toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:#0c4a6e;border:1px solid var(--blue);padding:9px 14px;border-radius:9px;display:none;z-index:70;font-size:13px;max-width:90vw}
+.empty{color:var(--muted);font-size:12.5px;padding:14px 0;text-align:center}
+.foot{color:var(--faint);font-size:11px;margin:18px 0 6px;text-align:center}
+@media print{
+  :root{--bg:#fff;--panel:#fff;--panel2:#fff;--text:#111;--muted:#555;--line:#ccc;--line2:#bbb}
+  .actions,nav.tabs,.filters,#intake{display:none!important}
+  section.tab{display:block!important;page-break-before:always}
+  section.tab:first-of-type{page-break-before:avoid}
+  .kpi{background:#fff!important}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1 id="title">Schedule Dashboard</h1>
+      <div class="sub" id="subline"><span>Load a live XER and a baseline XER to begin</span></div>
+    </div>
+    <div class="actions" id="actions" style="display:none">
+      <select class="btn" id="weightSel" title="Progress weighting">
+        <option value="cost">Cost weighted</option>
+        <option value="dur">Duration weighted</option>
+      </select>
+      <button class="btn" id="filesBtn">Files</button>
+      <button class="btn" id="setBtn">Settings</button>
+      <button class="btn" id="printBtn">Print / PDF</button>
+    </div>
+  </header>
+
+  <section id="intake" class="intro">
+    <div class="panel">
+      <h3 style="font-size:17px;margin-bottom:4px">Load your Primavera P6 exports</h3>
+      <p style="margin-top:4px">Everything is read inside this page. Nothing is uploaded anywhere, so it works offline on a laptop or phone. Drop the current update as the live programme and your accepted programme as the baseline. You can pick several live XERs at once (successive monthly updates) to build the trend charts.</p>
+      <div class="grid g11">
+        <label class="drop" id="dropLive">
+          <input type="file" id="fileLive" accept=".xer,.XER,text/plain" multiple>
+          <div class="hint">LIVE PROGRAMME</div>
+          <h4>Current update XER</h4>
+          <div class="hint">Tap to choose, or drag files here. Several updates allowed.</div>
+          <div class="fn" id="fnLive"></div>
+        </label>
+        <label class="drop" id="dropBase">
+          <input type="file" id="fileBase" accept=".xer,.XER,text/plain">
+          <div class="hint">BASELINE PROGRAMME</div>
+          <h4>Baseline XER</h4>
+          <div class="hint">Tap to choose, or drag a file here.</div>
+          <div class="fn" id="fnBase"></div>
+        </label>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:12px;justify-content:space-between">
+        <label class="hint" style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="remember" checked> Remember these files on this device</label>
+        <div class="actions" style="display:flex">
+          <button class="btn" id="forgetBtn">Forget saved files</button>
+          <button class="btn" id="demoBtn">Load demo programme</button>
+          <button class="btn primary" id="closeIntake" style="display:none">Show dashboard</button>
+        </div>
+      </div>
+      <div id="loadMsg" class="hint" style="margin-top:8px"></div>
+    </div>
+  </section>
+
+  <div id="dash" style="display:none">
+    <nav class="tabs" id="tabs">
+      <button data-tab="overview" class="on">Overview</button>
+      <button data-tab="behind">Where we're behind</button>
+      <button data-tab="drill">Drill down</button>
+      <button data-tab="ms">Milestones, delay &amp; recovery</button>
+    </nav>
+    <section class="tab" id="tab-overview"></section>
+    <section class="tab" id="tab-behind" style="display:none"></section>
+    <section class="tab" id="tab-drill" style="display:none"></section>
+    <section class="tab" id="tab-ms" style="display:none"></section>
+    <div class="foot" id="foot"></div>
+  </div>
+</div>
+
+<div class="modal" id="setModal"><div class="box">
+  <div class="ph"><h3>Project settings</h3><span class="hint">Saved on this device, per project</span></div>
+  <div class="form">
+    <label style="grid-column:1/-1">Dashboard title<input id="sTitle" placeholder="Project name"></label>
+    <label>Contract start<input type="date" id="sStart"></label>
+    <label>Contract completion<input type="date" id="sFinish"></label>
+    <label>Contract amount<input type="number" id="sAmount" step="any" placeholder="from baseline costs"></label>
+    <label>Currency<input id="sCur" placeholder="e.g. USD, AED, GBP" maxlength="6"></label>
+    <label>Near critical threshold (days)<input type="number" id="sNear" min="1" step="1"></label>
+    <label>Trend history<select id="sHist"><option value="keep">Keep</option><option value="clear">Clear stored updates</option></select></label>
+  </div>
+  <p class="hint">Leave contract dates blank to use the baseline start and finish. Contract amount defaults to the baseline's total budgeted cost.</p>
+  <div class="actions" style="display:flex;justify-content:flex-end;margin-top:10px">
+    <button class="btn" id="sCancel">Cancel</button>
+    <button class="btn primary" id="sSave">Save</button>
+  </div>
+</div></div>
+
+<div class="tip" id="tip"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+/* ================================================================ utils */
+const DAY = 864e5;
+const $ = (s, r = document) => r.querySelector(s);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const clamp = (v, a = 0, b = 1) => v < a ? a : v > b ? b : v;
+const num = s => { const v = parseFloat(s); return isFinite(v) ? v : 0; };
+const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function pd(s) {
+  if (!s) return null;
+  const m = /^(\d{4})-(\d{1,2})-(\d{1,2})(?:[ T](\d{1,2}):(\d{2}))?/.exec(s);
+  if (!m) return null;
+  return new Date(+m[1], m[2] - 1, +m[3], +(m[4] || 0), +(m[5] || 0)).getTime();
+}
+const fmtD = t => { if (t == null || !isFinite(t)) return '—'; const d = new Date(t); return d.getDate() + ' ' + MON[d.getMonth()] + ' ' + d.getFullYear(); };
+const fmtDs = t => { if (t == null || !isFinite(t)) return '—'; const d = new Date(t); return d.getDate() + ' ' + MON[d.getMonth()] + ' ' + String(d.getFullYear()).slice(2); };
+const fmtM = t => { const d = new Date(t); return MON[d.getMonth()] + ' ' + String(d.getFullYear()).slice(2); };
+const isoD = t => { if (t == null) return ''; const d = new Date(t); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+const pct = (v, dp = 1) => v == null || !isFinite(v) ? '—' : (v * 100).toFixed(dp) + '%';
+const sgn = (v, dp = 1, suf = '') => v == null || !isFinite(v) ? '—' : (v > 0 ? '+' : v < 0 ? '−' : '') + Math.abs(v).toFixed(dp) + suf;
+const days = (a, b) => Math.round((a - b) / DAY);
+const dayStr = d => d == null ? '—' : (d > 0 ? '+' : d < 0 ? '−' : '') + Math.abs(d) + ' d';
+const minOf = (arr, f) => { let m = Infinity; for (const x of arr) { const v = f(x); if (v != null && v < m) m = v; } return m; };
+const maxOf = (arr, f) => { let m = -Infinity; for (const x of arr) { const v = f(x); if (v != null && v > m) m = v; } return m; };
+function frac(t, s, e) { if (s == null || e == null) return 0; if (e <= s) return t >= e ? 1 : 0; return clamp((t - s) / (e - s)); }
+function toast(msg, ms = 2600) { const t = $('#toast'); t.textContent = msg; t.style.display = 'block'; clearTimeout(toast._t); toast._t = setTimeout(() => t.style.display = 'none', ms); }
+const store = {
+  get(k, d) { try { const v = localStorage.getItem('xerdash.' + k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem('xerdash.' + k, JSON.stringify(v)); return true; } catch (e) { return false; } },
+  del(k) { try { localStorage.removeItem('xerdash.' + k); } catch (e) {} }
+};
+const idb = {
+  open() { return new Promise((res, rej) => { const r = indexedDB.open('xerdash', 1); r.onupgradeneeded = () => r.result.createObjectStore('files'); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }); },
+  async put(k, v) { try { const db = await this.open(); await new Promise((res, rej) => { const tx = db.transaction('files', 'readwrite'); tx.objectStore('files').put(v, k); tx.oncomplete = res; tx.onerror = () => rej(tx.error); }); } catch (e) {} },
+  async get(k) { try { const db = await this.open(); return await new Promise(res => { const r = db.transaction('files').objectStore('files').get(k); r.onsuccess = () => res(r.result || null); r.onerror = () => res(null); }); } catch (e) { return null; } },
+  async del(k) { try { const db = await this.open(); await new Promise(res => { const tx = db.transaction('files', 'readwrite'); tx.objectStore('files').delete(k); tx.oncomplete = res; tx.onerror = res; }); } catch (e) {} }
+};
+
+/* ================================================================ XER parsing */
+function decodeBuf(buf) {
+  try { return new TextDecoder('utf-8', { fatal: true }).decode(buf); }
+  catch (e) { return new TextDecoder('windows-1252').decode(buf); }
+}
+function parseXER(text) {
+  const tables = {}; let cur = null, fields = null, bad = 0;
+  const lines = text.split(/\r?\n/);
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (line.charCodeAt(0) !== 37) continue;
+    const tag = line.slice(0, 2);
+    if (tag === '%T') { cur = line.slice(3).trim(); if (!tables[cur]) tables[cur] = []; fields = null; }
+    else if (tag === '%F') { fields = line.slice(3).split('\t').map(s => s.trim()); }
+    else if (tag === '%R' && cur && fields) {
+      const v = line.slice(3).split('\t'); if (v.length !== fields.length) bad++;
+      const o = {}; for (let j = 0; j < fields.length; j++) o[fields[j]] = v[j] === undefined ? '' : v[j];
+      tables[cur].push(o);
+    }
+  }
+  tables.__bad = bad;
+  return tables;
+}
+
+const HARD_CSTR = new Set(['CS_MSO', 'CS_MEO', 'CS_MANDSTART', 'CS_MANDFIN']);
+function buildModel(T, fileName) {
+  if (!T.TASK || !T.TASK.length) throw new Error(fileName + ': no TASK table found. Is this a P6 XER export?');
+  const flags = [];
+  ['PROJECT', 'PROJWBS', 'TASK', 'TASKPRED', 'CALENDAR'].forEach(n => { if (!T[n] || !T[n].length) flags.push({ lv: n === 'TASKPRED' ? 'r' : 'a', t: `Table ${n} is missing or empty` }); });
+  if (T.__bad) flags.push({ lv: 'a', t: `${T.__bad} rows had a column count that did not match their header` });
+  const counts = {}; T.TASK.forEach(t => counts[t.proj_id] = (counts[t.proj_id] || 0) + 1);
+  const projIds = Object.keys(counts).sort((a, b) => counts[b] - counts[a]);
+  const pid = projIds[0];
+  if (projIds.length > 1) flags.push({ lv: 'a', t: `File holds ${projIds.length} projects; using the largest (${counts[pid]} activities)` });
+  const P = (T.PROJECT || []).find(p => p.proj_id === pid) || {};
+  const cal = {}; (T.CALENDAR || []).forEach(c => cal[c.clndr_id] = num(c.day_hr_cnt) || 8);
+  const cost = {};
+  (T.TASKRSRC || []).forEach(r => { let c = num(r.target_cost); if (!c) c = num(r.act_reg_cost) + num(r.act_ot_cost) + num(r.remain_cost); cost[r.task_id] = (cost[r.task_id] || 0) + c; });
+  const wbs = {}; let root = null;
+  (T.PROJWBS || []).forEach(w => { if (w.proj_id !== pid) return; wbs[w.wbs_id] = { id: w.wbs_id, parent: w.parent_wbs_id, code: w.wbs_short_name, name: w.wbs_name || w.wbs_short_name, root: w.proj_node_flag === 'Y' }; if (w.proj_node_flag === 'Y') root = w.wbs_id; });
+  const pathMemo = {};
+  const wbsPath = id => {
+    if (pathMemo[id]) return pathMemo[id];
+    const out = []; let cur = wbs[id], guard = 0;
+    while (cur && !cur.root && guard++ < 50) { out.unshift(cur); cur = wbs[cur.parent]; }
+    return pathMemo[id] = out;
+  };
+  const types = {}; (T.ACTVTYPE || []).forEach(a => types[a.actv_code_type_id] = a.actv_code_type);
+  const cv = {}; (T.ACTVCODE || []).forEach(a => cv[a.actv_code_id] = a.actv_code_name || a.short_name);
+  const tasks = [], byId = new Map(), byCode = new Map(), allIds = new Set();
+  let noCal = 0;
+  T.TASK.forEach(t => allIds.add(t.task_id));
+  for (const t of T.TASK) {
+    if (t.proj_id !== pid) continue;
+    const st = t.status_code, targ = num(t.target_drtn_hr_cnt), rem = num(t.remain_drtn_hr_cnt);
+    let pc;
+    if (st === 'TK_Complete') pc = 1; else if (st === 'TK_NotStart') pc = 0;
+    else if (t.complete_pct_type === 'CP_Phys' || !targ) pc = clamp(num(t.phys_complete_pct) / 100);
+    else pc = clamp(1 - rem / targ);
+    if (!cal[t.clndr_id]) noCal++;
+    const o = {
+      id: t.task_id, code: t.task_code, name: t.task_name, wbs: t.wbs_id, type: t.task_type, status: st,
+      dh: cal[t.clndr_id] || 8, as: pd(t.act_start_date), af: pd(t.act_end_date), es: pd(t.early_start_date), ef: pd(t.early_end_date),
+      ls: pd(t.late_start_date), lf: pd(t.late_end_date), ts: pd(t.target_start_date), te: pd(t.target_end_date),
+      rs: pd(t.restart_date), re: pd(t.reend_date), tf: t.total_float_hr_cnt === '' || t.total_float_hr_cnt == null ? null : num(t.total_float_hr_cnt),
+      targ, rem, pct: pc, cstr: t.cstr_type, cstr2: t.cstr_type2, driving: t.driving_path_flag === 'Y',
+      cost: cost[t.task_id] || 0, isMile: t.task_type === 'TT_Mile' || t.task_type === 'TT_FinMile'
+    };
+    o.start = o.as || o.rs || o.es || o.ts; o.end = o.af || o.ef || o.re || o.te;
+    tasks.push(o); byId.set(o.id, o); if (o.code) byCode.set(o.code, o);
+  }
+  const codes = {};
+  (T.TASKACTV || []).forEach(a => { if (!byId.has(a.task_id)) return; const tn = types[a.actv_code_type_id]; if (!tn) return; (codes[tn] = codes[tn] || {})[a.task_id] = cv[a.actv_code_id] || '?'; });
+  const rels = []; let orphan = 0, external = 0;
+  (T.TASKPRED || []).forEach(r => {
+    const a = byId.has(r.pred_task_id), b = byId.has(r.task_id);
+    if (!a && !b) return;
+    if (!allIds.has(r.pred_task_id) || !allIds.has(r.task_id)) { orphan++; return; }
+    if (!a || !b) { external++; return; }
+    rels.push({ from: r.pred_task_id, to: r.task_id, type: (r.pred_type || 'PR_FS').replace('PR_', ''), lag: num(r.lag_hr_cnt) });
+  });
+  let dataDate = pd(P.last_recalc_date) || pd(P.next_data_date);
+  if (!dataDate) { dataDate = maxOf(tasks, t => t.as); flags.push({ lv: 'a', t: 'No data date in PROJECT table; using the latest actual start' }); }
+  if (orphan) flags.push({ lv: 'r', t: `${orphan} relationships point to activities missing from the file (orphaned links)` });
+  if (external) flags.push({ lv: 'b', t: `${external} relationships link to other projects (external links, ignored)` });
+  if (noCal) flags.push({ lv: 'a', t: `${noCal} activities have no matching calendar (8 h/day assumed)` });
+  const rootName = root && wbs[root] ? wbs[root].name : null;
+  return {
+    file: fileName, pid, code: P.proj_short_name || ('Project ' + pid), name: rootName || P.proj_short_name || fileName,
+    dataDate, scdEnd: pd(P.scd_end_date), planStart: pd(P.plan_start_date), planEnd: pd(P.plan_end_date), mustFin: pd(P.must_fin_by_date),
+    tasks, byId, byCode, rels, wbs, wbsPath, codes, flags, hasCost: tasks.some(t => t.cost > 0),
+    totalCost: tasks.reduce((s, t) => s + t.cost, 0)
+  };
+}
+
+/* ================================================================ analysis */
+function longestPath(L) {
+  const inc = L.tasks.filter(t => t.status !== 'TK_Complete');
+  let set = inc.filter(t => t.driving), method = 'P6 longest path flag';
+  if (!set.length) {
+    const f = inc.filter(t => t.tf != null);
+    if (f.length) { const mn = minOf(f, t => t.tf); set = f.filter(t => t.tf <= mn + 1); method = 'lowest total float'; }
+  }
+  set.sort((a, b) => (a.start || 0) - (b.start || 0) || (a.end || 0) - (b.end || 0));
+  return { set, method, driver: set[0] || null };
+}
+
+function settingsFor(code) { return store.get('settings.' + code, {}); }
+
+function analyse(L, B, mode, light) {
+  const DD = L.dataDate, bBy = B ? B.byCode : null;
+  const costAvail = (B && B.totalCost > 0) || L.totalCost > 0;
+  const useCost = mode === 'cost' && costAvail;
+  const bCost = useCost && B && B.totalCost > 0;
+  const rows = [];
+  for (const t of L.tasks) {
+    const b = bBy ? bBy.get(t.code) : null;
+    let w = useCost ? (bCost ? (b ? b.cost : t.cost) : t.cost) : (b ? b.targ : t.targ);
+    let ps, pe, pls, ple;
+    if (b) { ps = b.as || b.es || b.ts; pe = b.af || b.ef || b.te; pls = b.as || b.ls || ps; ple = b.af || b.lf || pe; }
+    else { ps = t.ts || t.es; pe = t.te || t.ef; pls = ps; ple = pe; }
+    const done = t.status === 'TK_Complete';
+    const rs = done ? null : Math.max(DD, t.status === 'TK_Active' ? (t.rs || DD) : (t.es || t.start || DD));
+    let re = done ? null : (t.ef || t.re || t.end || rs); if (re != null && re < rs) re = rs;
+    const fFin = t.af || t.ef || t.end;
+    const bFin = b ? pe : null, bSt = b ? ps : null;
+    rows.push({ t, b, w, ps, pe, pls, ple, as: t.as, ae: t.af || (t.as ? DD : null), rs, re, fFin, bFin, bSt,
+      varFin: bFin && fFin ? days(fFin, bFin) : null, tfd: t.tf == null ? null : t.tf / (t.dh || 8) });
+  }
+  let W = rows.reduce((s, r) => s + r.w, 0);
+  if (W <= 0) { rows.forEach(r => r.w = 1); W = rows.length || 1; }
+  const S = settingsFor(L.code);
+  const bStart = B ? minOf(B.tasks, t => t.as || t.es || t.ts) : null;
+  const bEnd = B ? maxOf(B.tasks, t => t.af || t.ef || t.te) : null;
+  const cStart = pd(S.start) || (isFinite(bStart) ? bStart : null) || L.planStart || minOf(rows, r => r.ps);
+  const cFinish = pd(S.finish) || (isFinite(bEnd) ? bEnd : null) || L.mustFin || L.planEnd || maxOf(rows, r => r.pe);
+  const ff = maxOf(rows, r => r.fFin);
+  const planAt = (T, late) => { let s = 0; for (const r of rows) s += r.w * frac(T, late ? r.pls : r.ps, late ? r.ple : r.pe); return s / W; };
+  const actAt = T => { let s = 0; for (const r of rows) if (r.t.pct > 0) s += r.w * r.t.pct * frac(T, r.as || r.rs, r.ae || r.re); return s / W; };
+  const earned = rows.reduce((s, r) => s + r.w * r.t.pct, 0) / W;
+  const fcAt = T => { let s = 0; for (const r of rows) if (r.rs != null) s += r.w * (1 - r.t.pct) * frac(T, r.rs, r.re); return earned + s / W; };
+  const planE = planAt(DD), planL = planAt(DD, true);
+  const lp = longestPath(L);
+  const A = { L, B, DD, rows, W, useCost, costAvail, mode, cStart, cFinish, ff, earned, planE, planL,
+    spi: planE > 0 ? earned / planE : null, delay: cFinish && ff ? days(ff, cFinish) : null, lp, S };
+  A.snap = {
+    dd: DD, ff, delay: A.delay, spi: A.spi, act: earned, plan: planE, file: L.file,
+    driver: lp.driver ? { code: lp.driver.code, name: lp.driver.name } : null, critN: lp.set.length,
+    crit: lp.set.slice(0, 3000).map(t => t.code),
+    ms: Object.fromEntries(rows.filter(r => r.t.isMile).map(r => [r.t.code, r.fFin]))
+  };
+  if (light) return A;
+  // S-curve sampling
+  const tmin = Math.min(minOf(rows, r => r.ps), minOf(rows, r => r.as), cStart || Infinity);
+  const tmax = Math.max(maxOf(rows, r => r.ple), maxOf(rows, r => r.pe), maxOf(rows, r => r.re), ff || -Infinity, cFinish || -Infinity);
+  const span = tmax - tmin, step = Math.max(DAY, Math.ceil(span / 160 / DAY) * DAY);
+  const ts = []; for (let t = tmin; t < tmax + step; t += step) ts.push(Math.min(t, tmax));
+  A.curve = { tmin, tmax, early: [], late: [], act: [], fc: [] };
+  for (const t of ts) {
+    A.curve.early.push([t, planAt(t) * 100]); A.curve.late.push([t, planAt(t, true) * 100]);
+    if (t <= DD) A.curve.act.push([t, actAt(t) * 100]);
+    if (t >= DD) A.curve.fc.push([t, fcAt(t) * 100]);
+  }
+  A.curve.act.push([DD, earned * 100]); A.curve.fc.unshift([DD, earned * 100]);
+  A.actAt = actAt; A.planAt = planAt;
+  // relationships
+  A.pred = new Map(); A.succ = new Map();
+  for (const r of L.rels) { (A.pred.get(r.to) || A.pred.set(r.to, []).get(r.to)).push(r); (A.succ.get(r.from) || A.succ.set(r.from, []).get(r.from)).push(r); }
+  A.critIds = new Set(lp.set.map(t => t.id));
+  A.byId = new Map(rows.map(r => [r.t.id, r]));
+  A.quality = qualityChecks(A);
+  return A;
+}
+
+function qualityChecks(A) {
+  const { L, B, rows, DD } = A, out = L.flags.slice();
+  const inc = rows.filter(r => r.t.status !== 'TK_Complete');
+  let noPred = 0, noSucc = 0;
+  for (const r of rows) { if (r.t.type === 'TT_LOE' || r.t.type === 'TT_WBS') continue; if (!A.pred.has(r.t.id)) noPred++; if (!A.succ.has(r.t.id)) noSucc++; }
+  if (noPred > 1) out.push({ lv: noPred > rows.length * 0.05 ? 'r' : 'a', t: `${noPred} activities have no predecessor (open start)` });
+  if (noSucc > 1) out.push({ lv: noSucc > rows.length * 0.05 ? 'r' : 'a', t: `${noSucc} activities have no successor (open end)` });
+  const hard = rows.filter(r => HARD_CSTR.has(r.t.cstr) || HARD_CSTR.has(r.t.cstr2)).length;
+  if (hard) out.push({ lv: 'a', t: `${hard} activities carry hard constraints (mandatory or must start/finish on)` });
+  const neg = inc.filter(r => r.t.tf != null && r.t.tf < 0).length;
+  if (neg) out.push({ lv: 'r', t: `${neg} incomplete activities have negative total float` });
+  const noFloat = inc.filter(r => r.t.tf == null).length;
+  if (noFloat) out.push({ lv: 'a', t: `${noFloat} incomplete activities have no total float value (schedule may not be recalculated)` });
+  const badAct = rows.filter(r => (r.t.as && r.t.as > DD + DAY) || (r.t.af && r.t.af > DD + DAY)).length;
+  if (badAct) out.push({ lv: 'r', t: `${badAct} activities have actual dates after the data date` });
+  const badFc = rows.filter(r => r.t.status === 'TK_NotStart' && r.t.es && r.t.es < DD - DAY).length;
+  if (badFc) out.push({ lv: 'r', t: `${badFc} not-started activities are forecast to start before the data date` });
+  if (B) {
+    const unmatched = rows.filter(r => !r.b).length;
+    const removed = B.tasks.filter(t => !L.byCode.has(t.code)).length;
+    if (unmatched) out.push({ lv: 'b', t: `${unmatched} live activities are not in the baseline (planned dates taken from live target dates)` });
+    if (removed) out.push({ lv: 'b', t: `${removed} baseline activities no longer exist in the live programme` });
+    if (B.code !== L.code) out.push({ lv: 'a', t: `Baseline project ID (${B.code}) differs from live (${L.code}); matching is by activity ID` });
+  } else out.push({ lv: 'a', t: 'No baseline loaded. Planned curves use the live programme’s target (planned) dates' });
+  if (A.mode === 'cost' && !A.useCost) out.push({ lv: 'b', t: 'No resource costs found, so progress is weighted by duration' });
+  out.push({ lv: 'b', t: `Longest path identified by ${A.lp.method}` });
+  return out;
+}
+
+/* ================================================================ history */
+function histKey(code) { return 'hist.' + code; }
+function mergeHistory(code, snaps) {
+  const map = new Map((store.get(histKey(code), []) || []).map(s => [s.dd, s]));
+  snaps.forEach(s => map.set(s.dd, s));
+  let arr = [...map.values()].sort((a, b) => a.dd - b.dd);
+  if (!store.set(histKey(code), arr)) { arr.forEach(s => s.crit = s.crit.slice(0, 300)); store.set(histKey(code), arr); }
+  return arr;
+}
+
+/* ================================================================ charts */
+function niceMax(v) { if (v <= 0) return 1; const p = Math.pow(10, Math.floor(Math.log10(v))); const n = v / p; return (n <= 1 ? 1 : n <= 2 ? 2 : n <= 2.5 ? 2.5 : n <= 5 ? 5 : 10) * p; }
+const tip = $('#tip');
+function showTip(e, html) { tip.innerHTML = html; tip.style.display = 'block'; const x = e.clientX, y = e.clientY, w = tip.offsetWidth, h = tip.offsetHeight; tip.style.left = Math.min(window.innerWidth - w - 8, x + 14) + 'px'; tip.style.top = Math.max(8, y - h - 12) + 'px'; }
+function hideTip() { tip.style.display = 'none'; }
+
+function lineChart(host, o) {
+  const W = Math.max(280, host.clientWidth || 600), H = o.h || 260, m = { l: o.ml || 38, r: 12, t: 12, b: 24 };
+  let y0 = o.y0, y1 = o.y1;
+  if (y0 == null || y1 == null) {
+    let lo = Infinity, hi = -Infinity; o.series.forEach(s => s.pts.forEach(p => { if (p[1] < lo) lo = p[1]; if (p[1] > hi) hi = p[1]; }));
+    if (!isFinite(lo)) { lo = 0; hi = 1; }
+    if (y0 == null) y0 = lo >= 0 ? 0 : -niceMax(-lo);
+    if (y1 == null) y1 = hi <= 0 ? 0 : niceMax(hi);
+    if (y1 === y0) y1 = y0 + 1;
+  }
+  const x0 = o.x0, x1 = o.x1 > o.x0 ? o.x1 : o.x0 + DAY;
+  const sx = t => m.l + (t - x0) / (x1 - x0) * (W - m.l - m.r), sy = v => H - m.b - (v - y0) / (y1 - y0) * (H - m.t - m.b);
+  const yf = o.yFmt || (v => v + '%');
+  let s = `<svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" role="img" aria-label="${esc(o.label || 'chart')}">`;
+  const yt = o.yTicks || 4;
+  for (let i = 0; i <= yt; i++) { const v = y0 + (y1 - y0) * i / yt, y = sy(v); s += `<line x1="${m.l}" x2="${W - m.r}" y1="${y}" y2="${y}" stroke="#1c2843"/><text x="${m.l - 6}" y="${y + 3}" fill="#6b7896" font-size="9.5" text-anchor="end">${esc(yf(Math.round(v * 10) / 10))}</text>`; }
+  if (y0 < 0 && y1 > 0) s += `<line x1="${m.l}" x2="${W - m.r}" y1="${sy(0)}" y2="${sy(0)}" stroke="#3a4a6e"/>`;
+  const nx = Math.max(2, Math.min(8, Math.floor((W - m.l) / 80)));
+  for (let i = 0; i <= nx; i++) { const t = x0 + (x1 - x0) * i / nx; s += `<text x="${sx(t)}" y="${H - 6}" fill="#6b7896" font-size="9.5" text-anchor="middle">${esc((o.xFmt || fmtM)(t))}</text>`; }
+  (o.vlines || []).forEach(v => { if (v.t < x0 || v.t > x1) return; const x = sx(v.t); s += `<line x1="${x}" x2="${x}" y1="${m.t}" y2="${H - m.b}" stroke="${v.c}" stroke-dasharray="3 3" opacity=".9"/><text x="${x + 4}" y="${m.t + 9 + (v.dy || 0)}" fill="${v.c}" font-size="9.5">${esc(v.label)}</text>`; });
+  if (o.band) {
+    const lo = o.series[o.band[0]].pts, hi = o.series[o.band[1]].pts;
+    if (lo.length && hi.length) { const d = hi.map(p => `${sx(p[0])},${sy(p[1])}`).concat(lo.slice().reverse().map(p => `${sx(p[0])},${sy(p[1])}`)); s += `<polygon points="${d.join(' ')}" fill="${o.bandColor || '#8ea0c6'}" opacity=".13"/>`; }
+  }
+  o.series.forEach(se => {
+    if (!se.pts.length) return;
+    const pts = se.pts.map(p => `${sx(p[0]).toFixed(1)},${sy(p[1]).toFixed(1)}`);
+    if (se.area) s += `<polygon points="${sx(se.pts[0][0])},${sy(Math.max(y0, 0))} ${pts.join(' ')} ${sx(se.pts[se.pts.length - 1][0])},${sy(Math.max(y0, 0))}" fill="${se.c}" opacity="${se.areaOp || .18}"/>`;
+    s += `<polyline points="${pts.join(' ')}" fill="none" stroke="${se.c}" stroke-width="${se.w || 1.8}" ${se.dash ? `stroke-dasharray="${se.dash}"` : ''} stroke-linejoin="round"/>`;
+    if (se.dots) se.pts.forEach(p => s += `<circle cx="${sx(p[0])}" cy="${sy(p[1])}" r="2.6" fill="${se.c}"/>`);
+  });
+  s += `<line class="cur" x1="0" x2="0" y1="${m.t}" y2="${H - m.b}" stroke="#cbd5e1" opacity="0"/></svg>`;
+  host.innerHTML = s;
+  const svg = host.querySelector('svg'), cur = svg.querySelector('.cur');
+  const move = e => {
+    const r = svg.getBoundingClientRect(), px = (e.clientX - r.left) * W / r.width;
+    if (px < m.l || px > W - m.r) { hideTip(); cur.setAttribute('opacity', 0); return; }
+    const t = x0 + (px - m.l) / (W - m.l - m.r) * (x1 - x0);
+    let html = `<b>${fmtD(t)}</b>`;
+    o.series.forEach(se => {
+      if (!se.pts.length || se.noTip) return;
+      if (t < se.pts[0][0] - (x1 - x0) * .02 || t > se.pts[se.pts.length - 1][0] + (x1 - x0) * .02) return;
+      let best = se.pts[0]; for (const p of se.pts) if (Math.abs(p[0] - t) < Math.abs(best[0] - t)) best = p;
+      html += `<div><span class="sq" style="background:${se.c}"></span>${esc(se.name)}: <b style="display:inline">${esc((o.tipFmt || yf)(best[1], best))}</b></div>`;
+    });
+    cur.setAttribute('x1', px); cur.setAttribute('x2', px); cur.setAttribute('opacity', .35);
+    showTip(e, html);
+  };
+  svg.addEventListener('pointermove', move); svg.addEventListener('pointerdown', move);
+  svg.addEventListener('pointerleave', () => { hideTip(); cur.setAttribute('opacity', 0); });
+}
+
+function gauge(v) {
+  const vv = v == null ? 1 : clamp(v, 0.5, 1.5), a = Math.PI * (1 - (vv - 0.5));
+  const c = v == null ? '#8a97b2' : v >= 0.95 ? '#34d399' : v >= 0.9 ? '#fbbf24' : '#f0506e';
+  const cx = 32, cy = 32, r = 24, x = cx + r * Math.cos(a), y = cy - r * Math.sin(a);
+  return `<svg width="64" height="38" viewBox="0 0 64 38"><path d="M8 32 A24 24 0 0 1 56 32" fill="none" stroke="#24304d" stroke-width="5" stroke-linecap="round"/><path d="M8 32 A24 24 0 0 1 ${x.toFixed(1)} ${y.toFixed(1)}" fill="none" stroke="${c}" stroke-width="5" stroke-linecap="round"/><line x1="${cx}" y1="${cy}" x2="${(cx + (r - 6) * Math.cos(a)).toFixed(1)}" y2="${(cy - (r - 6) * Math.sin(a)).toFixed(1)}" stroke="#e6ecf7" stroke-width="2" stroke-linecap="round"/></svg>`;
+}
+function donut(act, plan) {
+  const r = 24, C = 2 * Math.PI * r, c = act < plan - 0.005 ? '#f0506e' : '#34d399';
+  const pa = plan * 2 * Math.PI - Math.PI / 2;
+  return `<svg width="64" height="64" viewBox="0 0 64 64"><circle cx="32" cy="32" r="${r}" fill="none" stroke="#24304d" stroke-width="7"/><circle cx="32" cy="32" r="${r}" fill="none" stroke="${c}" stroke-width="7" stroke-dasharray="${(act * C).toFixed(1)} ${C}" transform="rotate(-90 32 32)"/><line x1="${32 + 18 * Math.cos(pa)}" y1="${32 + 18 * Math.sin(pa)}" x2="${32 + 30 * Math.cos(pa)}" y2="${32 + 30 * Math.sin(pa)}" stroke="#38bdf8" stroke-width="2"/></svg>`;
+}
+
+/* ================================================================ state */
+const ST = { base: null, lives: [], weight: store.get('weight', 'cost'), zoneKey: store.get('zoneKey', 'wbs1'), tab: 'overview', A: null, hist: [], lpSel: null,
+  drill: { q: '', status: '', zone: '', crit: false, behind: false, sort: 'var', dir: -1, limit: 150, sel: null } };
+
+function zoneOf(A, r) {
+  const k = ST.zoneKey;
+  if (k === 'wbs1' || k === 'wbs2') { const p = A.L.wbsPath(r.t.wbs); const n = k === 'wbs1' ? p[0] : (p[1] || p[0]); return n ? n.name : 'Unassigned'; }
+  if (k.startsWith('code:')) { const m = A.L.codes[k.slice(5)]; return (m && m[r.t.id]) || 'Unassigned'; }
+  return 'All';
+}
+function zoneStats(A) {
+  const g = new Map();
+  for (const r of A.rows) { const z = zoneOf(A, r); let o = g.get(z); if (!o) g.set(z, o = { z, w: 0, pl: 0, ac: 0, n: 0 }); o.w += r.w; o.n++; o.pl += r.w * frac(A.DD, r.ps, r.pe); o.ac += r.w * r.t.pct; }
+  return [...g.values()].map(o => ({ ...o, plan: o.w ? o.pl / o.w : 0, act: o.w ? o.ac / o.w : 0, share: o.w / A.W }))
+    .map(o => ({ ...o, var: o.act - o.plan, contrib: (o.ac - o.pl) / A.W })).sort((a, b) => b.w - a.w);
+}
+const varCol = v => v >= -0.005 ? 'var(--green)' : v >= -0.02 ? 'var(--amber)' : 'var(--red)';
+
+function recompute() {
+  if (!ST.lives.length) { showIntake(true); return; }
+  ST.lives.sort((a, b) => a.dataDate - b.dataDate);
+  const L = ST.lives[ST.lives.length - 1];
+  const snaps = ST.lives.slice(0, -1).map(m => analyse(m, ST.base, ST.weight, true).snap);
+  ST.A = analyse(L, ST.base, ST.weight, false);
+  snaps.push(ST.A.snap);
+  ST.hist = mergeHistory(L.code, snaps);
+  showIntake(false); render();
+}
+
+/* ================================================================ render */
+function render() {
+  const A = ST.A; if (!A) return;
+  const S = A.S;
+  $('#title').textContent = S.title || (A.L.name + (A.B ? ' · Live vs Baseline' : ''));
+  document.title = (S.title || A.L.name) + ' · Schedule Dashboard';
+  $('#subline').innerHTML = `<span class="dd"><span class="dot"></span><small>Data date</small><b>${fmtD(A.DD)}</b></span>
+    <span>${A.useCost ? 'cost weighted' : 'duration weighted'} · ${esc(A.L.code)}</span>
+    <span title="${esc(A.L.file)}">Live: ${esc(A.L.file)}</span><span>${A.B ? 'Baseline: ' + esc(A.B.file) : '<span class="a">No baseline loaded</span>'}</span>`;
+  $('#weightSel').value = ST.weight;
+  $('#foot').textContent = `Computed in your browser from ${A.L.file}${A.B ? ' and ' + A.B.file : ''}. ${A.rows.length.toLocaleString()} activities, ${A.L.rels.length.toLocaleString()} relationships. Progress curves spread each activity's weight evenly across its dates (calendar days).`;
+  ({ overview: renderOverview, behind: renderBehind, drill: renderDrill, ms: renderMs })[ST.tab](A);
+}
+
+function renderOverview(A) {
+  const h = ST.hist, idx = h.findIndex(s => s.dd === A.DD), prev = idx > 0 ? h[idx - 1] : null;
+  const variance = A.earned - A.planE, behind = variance < -0.0005;
+  const slip = prev && prev.delay != null && A.delay != null ? A.delay - prev.delay : null;
+  const dSpi = prev && prev.spi != null && A.spi != null ? A.spi - prev.spi : null;
+  const elapsed = A.cStart && A.cFinish ? clamp((A.DD - A.cStart) / (A.cFinish - A.cStart)) : null;
+  const amount = A.S.amount ? num(A.S.amount) : (A.B && A.B.totalCost > 0 ? A.B.totalCost : A.L.totalCost);
+  const cur = A.S.cur || '';
+  const late = A.delay != null && A.delay > 0;
+  const spiC = A.spi == null ? 'm' : A.spi >= 0.95 ? 'g' : A.spi >= 0.9 ? 'a' : 'r';
+  const st = { c: 0, a: 0, n: 0 }; A.rows.forEach(r => r.t.status === 'TK_Complete' ? st.c++ : r.t.status === 'TK_Active' ? st.a++ : st.n++);
+  const N = A.rows.length || 1;
+  const zs = zoneStats(A);
+  const zoneOpts = [['wbs1', 'by WBS level 1'], ['wbs2', 'by WBS level 2'], ...Object.keys(A.L.codes).map(k => ['code:' + k, 'by ' + k])];
+
+  // longest path changes
+  const changes = [];
+  for (let i = 1; i < h.length; i++) {
+    const a = h[i - 1], b = h[i]; const sa = new Set(a.crit), sb = new Set(b.crit);
+    const joined = b.crit.filter(c => !sa.has(c)), left = a.crit.filter(c => !sb.has(c));
+    const drvChg = (a.driver && a.driver.code) !== (b.driver && b.driver.code);
+    if (drvChg || joined.length || left.length) changes.push({ a, b, joined, left });
+  }
+  changes.reverse();
+
+  const el = $('#tab-overview');
+  el.innerHTML = `
+  <div class="kpis">
+    <div class="kpi ${behind ? 'red' : 'green'}">
+      <div class="t"><span>Progress</span><span class="tag ${behind ? '' : 'g'}">${behind ? 'Delayed' : 'On plan'}</span></div>
+      <div style="display:flex;gap:12px;align-items:center">${donut(A.earned, A.planE)}
+        <div class="kv" style="flex:1"><span>Actual</span><span class="${behind ? 'r' : 'g'}" style="font-size:16px">${pct(A.earned)}</span>
+        <span>Early planned</span><span class="b" style="font-size:16px">${pct(A.planE)}</span>
+        <span>Variance</span><span class="${behind ? 'r' : 'g'}">${sgn(variance * 100, 2, '%')}</span>
+        <span>Late planned</span><span>${pct(A.planL)}</span></div></div>
+    </div>
+    <div class="kpi ${late ? 'red' : 'green'}">
+      <div class="t"><span>Project delay</span><span class="tag ${late ? '' : 'g'}">${late ? 'Late' : 'On time'}</span></div>
+      <div class="big ${late ? 'r' : 'g'}">${A.delay == null ? '—' : Math.abs(A.delay) + ' days' + (A.delay < 0 ? ' early' : '')}</div>
+      ${slip == null ? '<div class="hint">Load more updates to see movement</div>' : `<div class="${slip > 0 ? 'r' : slip < 0 ? 'g' : 'm'}" style="font-size:12px;font-weight:600">${slip > 0 ? '▼ ' + slip + ' days slipped' : slip < 0 ? '▲ ' + (-slip) + ' days recovered' : 'No change'} this update</div>`}
+      <div class="lbl">Forecast completion</div><div class="val ${late ? 'r' : ''}">${fmtD(A.ff)}</div>
+      <div class="lbl">Contract completion</div><div class="val">${fmtD(A.cFinish)}</div>
+    </div>
+    <div class="kpi ${spiC === 'r' ? 'red' : spiC === 'a' ? 'amber' : 'green'}">
+      <div class="t"><span>Schedule performance</span></div>
+      <div style="display:flex;align-items:center;gap:10px">${gauge(A.spi)}<div><div class="big ${spiC}">${A.spi == null ? '—' : A.spi.toFixed(2)}</div><div class="hint" style="margin-top:-4px">SPI</div></div></div>
+      ${dSpi == null ? '' : `<div class="${dSpi >= 0 ? 'g' : 'r'}" style="font-size:12px;font-weight:600;margin-top:6px">${dSpi >= 0 ? '▲' : '▼'} ${Math.abs(dSpi).toFixed(2)} since last update</div>`}
+      <div class="hint" style="margin-top:6px">Earned progress ÷ early planned progress at the data date</div>
+    </div>
+    <div class="kpi">
+      <div class="t"><span>Time elapsed</span></div>
+      <div class="big b">${pct(elapsed, 0)}</div>
+      <div style="height:5px;background:#24304d;border-radius:3px;margin:4px 0 6px"><div style="height:100%;width:${(elapsed || 0) * 100}%;background:var(--blue);border-radius:3px"></div></div>
+      <div class="lbl">Time elapsed</div><div class="val">${A.cStart ? Math.max(0, days(A.DD, A.cStart)) + ' days' : '—'}</div>
+      <div class="lbl">Time remaining</div><div class="val">${A.cFinish ? days(A.cFinish, A.DD) + ' days' : '—'}</div>
+    </div>
+    <div class="kpi">
+      <div class="t"><span>Contract</span></div>
+      <div class="lbl" style="margin-top:0">Contract amount</div>
+      <div class="val" style="font-size:18px;margin-bottom:8px">${amount > 0 ? Math.round(amount).toLocaleString('en-US') + ' <small class="m">' + esc(cur) + '</small>' : '<span class="m" style="font-size:12px">Set in Settings</span>'}</div>
+      <div class="kv"><span>Contract start</span><span>${fmtD(A.cStart)}</span><span>Contract finish</span><span>${fmtD(A.cFinish)}</span><span>Contract duration</span><span>${A.cStart && A.cFinish ? days(A.cFinish, A.cStart) + ' days' : '—'}</span></div>
+    </div>
+  </div>
+  <div class="chips">
+    <span class="chip"><span class="y">● ${A.lp.set.length}</span> critical (longest path)</span>
+    ${A.lp.driver ? `<span class="chip"><span class="y">● ${esc(A.lp.driver.code)}</span> drives the longest path, ${A.lp.set.length} activities on it</span>` : ''}
+    <span class="chip"><b>${A.rows.length.toLocaleString()}</b> activities</span>
+    <span class="chip"><b>${h.length}</b> update${h.length === 1 ? '' : 's'} in trend</span>
+  </div>
+  <div class="grid g21">
+    <div class="panel"><div class="ph"><h3>Progress S-curve</h3><span class="hint">${A.useCost ? 'Cost weighted' : 'Duration weighted'}</span></div>
+      <div class="chart" id="cS"></div>
+      <div class="legend"><span><i style="background:var(--plan)"></i>Planned, early dates</span><span><i style="background:var(--plan2)"></i>Planned, late dates</span><span><i style="background:var(--blue)"></i>Actual</span><span><i style="background:var(--violet)"></i>Forecast</span></div>
+    </div>
+    <div class="stack">
+      <div class="panel"><div class="ph"><h3>Forecast delay over time</h3><span class="hint">days vs contract completion</span></div><div class="chart" id="cF"></div>
+        ${h.length < 2 ? '<div class="hint">Load earlier updates (several live XERs) to build this trend. Each update you load is remembered on this device.</div>' : ''}</div>
+      <div class="panel"><div class="ph"><h3>Work by status</h3><span class="hint">Click a part to filter</span></div>
+        <div class="stbar">${st.c ? `<div data-st="TK_Complete" style="width:${st.c / N * 100}%;background:var(--green);color:#052e1f">${st.c / N > .06 ? pct(st.c / N, 0) : ''}</div>` : ''}${st.a ? `<div data-st="TK_Active" style="width:${st.a / N * 100}%;background:var(--blue);color:#05263a">${st.a / N > .06 ? pct(st.a / N, 0) : ''}</div>` : ''}${st.n ? `<div data-st="TK_NotStart" style="width:${st.n / N * 100}%;color:#a9b4cc">${st.n / N > .06 ? pct(st.n / N, 0) : ''}</div>` : ''}</div>
+        <div style="margin-top:8px">
+          <div class="strow" data-st="TK_Complete"><span><span class="sq" style="background:var(--green)"></span>Completed</span><b>${pct(st.c / N, 0)} <span class="m">(${st.c})</span></b></div>
+          <div class="strow" data-st="TK_Active"><span><span class="sq" style="background:var(--blue)"></span>In progress</span><b>${pct(st.a / N, 0)} <span class="m">(${st.a})</span></b></div>
+          <div class="strow" data-st="TK_NotStart"><span><span class="sq" style="background:#2c3a5c"></span>Not started</span><b>${pct(st.n / N, 0)} <span class="m">(${st.n})</span></b></div>
+        </div></div>
+    </div>
+  </div>
+  <div class="grid g11">
+    <div class="panel"><div class="ph"><h3>Longest path changes</h3><span class="hint">Click an update to see which activities joined and left the path</span></div>
+      <div style="margin-bottom:8px;font-size:12.5px"><span class="y a" style="font-size:18px;font-weight:700">${changes.length}</span> <span class="m">updates where the longest path changed, out of ${Math.max(0, h.length - 1)}</span></div>
+      ${changes.length ? `<div class="tscroll"><table><thead><tr><th>Update</th><th>Driver before → after</th><th>Forecast finish before → after</th><th class="n">Delay before → after</th></tr></thead><tbody>
+      ${changes.slice(0, 12).map((c, i) => `<tr class="click ${ST.lpSel === c.b.dd ? 'sel' : ''}" data-lp="${c.b.dd}"><td style="white-space:nowrap">${fmtDs(c.b.dd)}</td><td class="code">${esc(c.a.driver ? c.a.driver.code : '—')} → ${esc(c.b.driver ? c.b.driver.code : '—')}</td><td style="white-space:nowrap">${fmtDs(c.a.ff)} → <b>${fmtDs(c.b.ff)}</b></td><td class="n">${dayStr(c.a.delay)} → <b class="${c.b.delay > c.a.delay ? 'r' : 'g'}">${dayStr(c.b.delay)}</b></td></tr>`).join('')}
+      </tbody></table></div>` : '<div class="empty">Needs two or more updates. Load several live XERs at once, or keep adding each month’s update.</div>'}
+      <div id="lpDetail"></div>
+    </div>
+    <div class="panel"><div class="ph"><h3>Progress by zone</h3><span class="hint">Click a bar to filter</span>
+      <select class="btn" id="zoneSel" style="font-size:12px">${zoneOpts.map(z => `<option value="${esc(z[0])}" ${z[0] === ST.zoneKey ? 'selected' : ''}>${esc(z[1])}</option>`).join('')}</select></div>
+      <div class="tscroll"><table><thead><tr><th>Zone</th><th style="width:30%"></th><th class="n">Actual</th><th class="n">Planned</th><th class="n">Variance</th></tr></thead><tbody>
+      ${zs.slice(0, 30).map(z => `<tr class="click" data-zone="${esc(z.z)}"><td>${esc(z.z)}</td><td><div class="zbar"><div class="p" style="width:${z.plan * 100}%"></div><div class="ac" style="width:${Math.max(z.act * 100, z.act > 0 ? 1 : 0)}%;background:${varCol(z.var)}"></div></div></td><td class="n"><b>${pct(z.act, 0)}</b></td><td class="n m">${pct(z.plan, 0)}</td><td class="n" style="color:${varCol(z.var)};font-weight:700">${sgn(z.var * 100, 1, '%')}</td></tr>`).join('')}
+      </tbody></table></div>
+      <div class="legend"><span><i style="background:var(--plan2)"></i>Planned, early dates</span><span><i style="background:var(--green)"></i>Actual, on schedule</span><span><i style="background:var(--amber)"></i>Actual, watch</span><span><i style="background:var(--red)"></i>Actual, delayed</span></div>
+    </div>
+  </div>
+  <div class="panel" style="margin-top:10px"><div class="ph"><h3>Data checks</h3><span class="hint">What a reviewer should know before trusting these numbers</span></div>
+    ${A.quality.map(f => `<div class="flag"><span class="dotf" style="background:${f.lv === 'r' ? 'var(--red)' : f.lv === 'a' ? 'var(--amber)' : 'var(--blue)'}"></span><span>${esc(f.t)}</span></div>`).join('')}
+  </div>`;
+
+  lineChart($('#cS'), { x0: A.curve.tmin, x1: A.curve.tmax, y0: 0, y1: 100, h: 290, label: 'Progress S-curve', band: [1, 0],
+    series: [{ name: 'Planned, early', c: '#8ea0c6', pts: A.curve.early, dash: '5 3', w: 1.4 }, { name: 'Planned, late', c: '#5b6b8f', pts: A.curve.late, dash: '2 3', w: 1.4 },
+      { name: 'Actual', c: '#38bdf8', pts: A.curve.act, area: true, w: 2.2 }, { name: 'Forecast', c: '#a78bfa', pts: A.curve.fc, dash: '4 3', w: 1.6 }],
+    vlines: [{ t: A.DD, c: '#38bdf8', label: 'data date' }, { t: A.cFinish, c: '#f0506e', label: 'contract', dy: 12 }],
+    tipFmt: v => v.toFixed(1) + '%' });
+  const fpts = h.filter(s => s.delay != null).map(s => [s.dd, s.delay]);
+  const fx0 = fpts.length ? fpts[0][0] : A.DD - 30 * DAY, fx1 = fpts.length > 1 ? fpts[fpts.length - 1][0] : A.DD + 30 * DAY;
+  lineChart($('#cF'), { x0: fx0, x1: fx1, h: 150, label: 'Forecast delay over time', yTicks: 5, xFmt: fmtDs,
+    series: [{ name: 'Delay', c: '#f0506e', pts: fpts, area: true, areaOp: .3, dots: true, w: 1.8 }],
+    yFmt: v => v + ' d', tipFmt: (v, p) => `${v} d (finish ${fmtDs((h.find(s => s.dd === p[0]) || {}).ff)})` });
+
+  el.querySelectorAll('[data-st]').forEach(b => b.onclick = () => goDrill({ status: b.dataset.st }));
+  el.querySelectorAll('[data-zone]').forEach(b => b.onclick = () => goDrill({ zone: b.dataset.zone }));
+  $('#zoneSel').onchange = e => { ST.zoneKey = e.target.value; store.set('zoneKey', ST.zoneKey); renderOverview(A); };
+  const showLp = dd => {
+    const c = changes.find(x => x.b.dd === dd); if (!c) return;
+    const nm = code => { const t = A.L.byCode.get(code); return t ? esc(t.name) : '<span class="m">(not in current update)</span>'; };
+    const list = (arr, cls) => arr.length ? arr.slice(0, 40).map(code => `<div style="font-size:12px;padding:2px 0"><span class="code ${cls}">${esc(code)}</span> ${nm(code)}</div>`).join('') + (arr.length > 40 ? `<div class="hint">and ${arr.length - 40} more</div>` : '') : '<div class="hint">None</div>';
+    $('#lpDetail').innerHTML = `<div class="grid g11" style="margin-top:10px"><div><div class="hint" style="margin-bottom:4px">JOINED the path on ${fmtDs(c.b.dd)} (${c.joined.length})</div>${list(c.joined, 'r')}</div><div><div class="hint" style="margin-bottom:4px">LEFT the path (${c.left.length})</div>${list(c.left, 'g')}</div></div>`;
+  };
+  el.querySelectorAll('[data-lp]').forEach(r => r.onclick = () => { ST.lpSel = +r.dataset.lp; el.querySelectorAll('[data-lp]').forEach(x => x.classList.toggle('sel', x === r)); showLp(ST.lpSel); });
+  if (ST.lpSel) showLp(ST.lpSel);
+}
+
+function actTable(A, list, cols, empty) {
+  if (!list.length) return `<div class="empty">${empty}</div>`;
+  const C = {
+    code: ['ID', r => `<span class="code">${esc(r.t.code)}</span>`],
+    name: ['Activity', r => esc(r.t.name)],
+    zone: ['Zone', r => `<span class="m">${esc(zoneOf(A, r))}</span>`],
+    bs: ['BL start', r => fmtDs(r.ps), 1], bf: ['BL finish', r => fmtDs(r.pe), 1],
+    fs: ['Forecast start', r => fmtDs(r.t.as || r.rs || r.t.start), 1], ff: ['Forecast finish', r => fmtDs(r.fFin), 1],
+    var: ['Finish var', r => `<b class="${r.varFin > 0 ? 'r' : r.varFin < 0 ? 'g' : ''}">${dayStr(r.varFin)}</b>`, 1],
+    tf: ['Total float', r => r.tfd == null ? '—' : `<span class="${r.tfd < 0 ? 'r' : ''}">${Math.round(r.tfd)} d</span>`, 1],
+    pc: ['% done', r => pct(r.t.pct, 0), 1],
+    late: ['Days late', r => `<b class="r">${days(A.DD, r.ps)} d</b>`, 1],
+    latef: ['Days overdue', r => `<b class="r">${days(A.DD, r.pe)} d</b>`, 1],
+    contrib: ['Lost progress', r => `<b class="r">${(r._c * 100).toFixed(2)} pp</b>`, 1]
+  };
+  return `<div class="tscroll"><table><thead><tr>${cols.map(c => `<th class="${C[c][2] ? 'n' : ''}">${C[c][0]}</th>`).join('')}</tr></thead><tbody>${list.map(r => `<tr class="click" data-open="${esc(r.t.id)}">${cols.map(c => `<td class="${C[c][2] ? 'n' : ''}">${C[c][1](r)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+}
+
+function renderBehind(A) {
+  const DD = A.DD, inc = A.rows.filter(r => r.t.status !== 'TK_Complete');
+  const nsLate = inc.filter(r => r.t.status === 'TK_NotStart' && r.ps && r.ps <= DD).sort((a, b) => a.ps - b.ps);
+  const nfLate = inc.filter(r => r.pe && r.pe <= DD).sort((a, b) => a.pe - b.pe);
+  A.rows.forEach(r => r._c = r.w * (frac(DD, r.ps, r.pe) - r.t.pct) / A.W);
+  const contrib = A.rows.filter(r => r._c > 0.00001).sort((a, b) => b._c - a._c);
+  const slips = A.rows.filter(r => r.varFin > 0 && r.t.status !== 'TK_Complete').sort((a, b) => b.varFin - a.varFin);
+  const zs = zoneStats(A).sort((a, b) => a.contrib - b.contrib);
+  const totalVar = A.earned - A.planE;
+  const maxAbs = Math.max(0.0001, ...zs.map(z => Math.abs(z.contrib)));
+  const el = $('#tab-behind');
+  el.innerHTML = `
+  <div class="mini">
+    <div class="panel"><div class="hint">Progress variance</div><div class="big ${totalVar < 0 ? 'r' : 'g'}">${sgn(totalVar * 100, 2, ' pp')}</div><div class="hint">earned vs early plan</div></div>
+    <div class="panel"><div class="hint">Should have started</div><div class="big ${nsLate.length ? 'r' : 'g'}">${nsLate.length}</div><div class="hint">baseline start passed, not started</div></div>
+    <div class="panel"><div class="hint">Should have finished</div><div class="big ${nfLate.length ? 'r' : 'g'}">${nfLate.length}</div><div class="hint">baseline finish passed, still open</div></div>
+    <div class="panel"><div class="hint">Finishing later than baseline</div><div class="big ${slips.length ? 'a' : 'g'}">${slips.length}</div><div class="hint">worst ${slips.length ? dayStr(slips[0].varFin) : '—'}</div></div>
+  </div>
+  <div class="grid g11">
+    <div class="panel"><div class="ph"><h3>Where the variance sits</h3><span class="hint">Each zone’s share of the ${sgn(totalVar * 100, 2, ' pp')} overall gap</span></div>
+      <div class="tscroll"><table><thead><tr><th>Zone</th><th style="width:40%"></th><th class="n">Contribution</th><th class="n">Zone var</th></tr></thead><tbody>
+      ${zs.map(z => `<tr class="click" data-zone="${esc(z.z)}"><td>${esc(z.z)}</td><td><div style="position:relative;height:12px;background:#18233c;border-radius:3px"><div style="position:absolute;top:0;height:100%;border-radius:3px;${z.contrib < 0 ? `right:50%;width:${Math.abs(z.contrib) / maxAbs * 50}%;background:var(--red)` : `left:50%;width:${z.contrib / maxAbs * 50}%;background:var(--green)`}"></div><div style="position:absolute;left:50%;top:-2px;bottom:-2px;width:1px;background:#3a4a6e"></div></div></td><td class="n" style="color:${z.contrib < 0 ? 'var(--red)' : 'var(--green)'};font-weight:700">${sgn(z.contrib * 100, 2, ' pp')}</td><td class="n" style="color:${varCol(z.var)}">${sgn(z.var * 100, 1, '%')}</td></tr>`).join('')}
+      </tbody></table></div>
+      <div class="hint" style="margin-top:6px">Grouping follows the zone selector on the Overview tab.</div>
+    </div>
+    <div class="panel"><div class="ph"><h3>Activities costing the most progress</h3><span class="hint">planned minus earned, in points of total project</span></div>
+      ${actTable(A, contrib.slice(0, 15), ['code', 'name', 'pc', 'contrib'], 'No activity is behind its planned progress.')}
+    </div>
+  </div>
+  <div class="grid g11">
+    <div class="panel"><div class="ph"><h3>Should have started</h3><span class="hint">${nsLate.length} activities, oldest first</span></div>${actTable(A, nsLate.slice(0, 25), ['code', 'name', 'bs', 'late', 'tf'], 'Nothing is late to start.')}</div>
+    <div class="panel"><div class="ph"><h3>Should have finished</h3><span class="hint">${nfLate.length} activities, oldest first</span></div>${actTable(A, nfLate.slice(0, 25), ['code', 'name', 'bf', 'latef', 'pc'], 'Nothing is overdue to finish.')}</div>
+  </div>
+  <div class="panel" style="margin-top:10px"><div class="ph"><h3>Biggest finish slips against baseline</h3><span class="hint">${slips.length} open activities finishing late, top 25</span></div>
+    ${actTable(A, slips.slice(0, 25), ['code', 'name', 'zone', 'bf', 'ff', 'var', 'tf'], A.B ? 'No open activity is forecast to finish later than its baseline.' : 'Load a baseline to compare finish dates.')}</div>`;
+  el.querySelectorAll('[data-zone]').forEach(b => b.onclick = () => goDrill({ zone: b.dataset.zone }));
+  el.querySelectorAll('[data-open]').forEach(b => b.onclick = () => goDrill({ sel: b.dataset.open }));
+}
+
+function goDrill(f) {
+  const d = ST.drill;
+  if (f.sel) { d.sel = f.sel; const r = ST.A.byId.get(f.sel); d.q = r ? r.t.code : ''; d.status = ''; d.zone = ''; d.crit = false; d.behind = false; }
+  else { Object.assign(d, { q: '', status: '', zone: '', crit: false, behind: false, sel: null }, f); }
+  d.limit = 150; switchTab('drill');
+}
+
+function renderDrill(A) {
+  const d = ST.drill, q = d.q.trim().toLowerCase();
+  const zones = [...new Set(A.rows.map(r => zoneOf(A, r)))].sort();
+  let list = A.rows.filter(r => (!d.status || r.t.status === d.status) && (!d.zone || zoneOf(A, r) === d.zone) && (!d.crit || A.critIds.has(r.t.id))
+    && (!d.behind || (r.varFin > 0 && r.t.status !== 'TK_Complete')) && (!q || (r.t.code || '').toLowerCase().includes(q) || (r.t.name || '').toLowerCase().includes(q)));
+  const key = { code: r => r.t.code || '', name: r => r.t.name || '', bf: r => r.pe || 0, ff: r => r.fFin || 0, var: r => r.varFin == null ? -1e9 : r.varFin, tf: r => r.tfd == null ? 1e9 : r.tfd, pc: r => r.t.pct, zone: r => zoneOf(A, r) }[d.sort];
+  list.sort((a, b) => { const x = key(a), y = key(b); return (x < y ? -1 : x > y ? 1 : 0) * d.dir; });
+  const cols = [['code', 'ID'], ['name', 'Activity'], ['zone', 'Zone'], ['pc', '% done', 1], ['bf', 'BL finish', 1], ['ff', 'Forecast', 1], ['var', 'Var', 1], ['tf', 'TF', 1]];
+  const pill = s => s === 'TK_Complete' ? '<span class="pill c">Done</span>' : s === 'TK_Active' ? '<span class="pill i">Active</span>' : '<span class="pill n">Not started</span>';
+  const el = $('#tab-drill');
+  el.innerHTML = `<div class="panel">
+    <div class="filters">
+      <input type="search" id="dq" placeholder="Search activity ID or name" value="${esc(d.q)}">
+      <select class="btn" id="dst"><option value="">All statuses</option><option value="TK_Complete">Completed</option><option value="TK_Active">In progress</option><option value="TK_NotStart">Not started</option></select>
+      <select class="btn" id="dz"><option value="">All zones</option>${zones.map(z => `<option ${z === d.zone ? 'selected' : ''}>${esc(z)}</option>`).join('')}</select>
+      <label><input type="checkbox" id="dc" ${d.crit ? 'checked' : ''}> Longest path</label>
+      <label><input type="checkbox" id="db" ${d.behind ? 'checked' : ''}> Finishing late</label>
+      <span class="hint">${list.length.toLocaleString()} of ${A.rows.length.toLocaleString()}</span>
+    </div>
+    <div id="detail"></div>
+    <div class="tscroll"><table><thead><tr>${cols.map(c => `<th class="sort ${c[2] ? 'n' : ''}" data-sort="${c[0]}">${c[1]}${d.sort === c[0] ? (d.dir > 0 ? ' ▲' : ' ▼') : ''}</th>`).join('')}<th>Status</th></tr></thead><tbody>
+    ${list.slice(0, d.limit).map(r => `<tr class="click ${d.sel === r.t.id ? 'sel' : ''}" data-id="${esc(r.t.id)}"><td class="code">${A.critIds.has(r.t.id) ? '<span class="a">●</span> ' : ''}${esc(r.t.code)}</td><td>${esc(r.t.name)}</td><td class="m">${esc(zoneOf(A, r))}</td><td class="n">${pct(r.t.pct, 0)}</td><td class="n">${fmtDs(r.pe)}</td><td class="n">${fmtDs(r.fFin)}</td><td class="n"><b class="${r.varFin > 0 ? 'r' : r.varFin < 0 ? 'g' : ''}">${dayStr(r.varFin)}</b></td><td class="n ${r.tfd != null && r.tfd < 0 ? 'r' : ''}">${r.tfd == null ? '—' : Math.round(r.tfd) + ' d'}</td><td>${pill(r.t.status)}</td></tr>`).join('')}
+    </tbody></table></div>
+    ${list.length > d.limit ? `<div style="text-align:center;margin-top:10px"><button class="btn" id="more">Show more (${(list.length - d.limit).toLocaleString()} left)</button></div>` : ''}
+    ${!list.length ? '<div class="empty">No activities match these filters.</div>' : ''}
+  </div>`;
+  $('#dst').value = d.status;
+  let tmr; $('#dq').oninput = e => { clearTimeout(tmr); tmr = setTimeout(() => { d.q = e.target.value; d.limit = 150; renderDrill(A); const i = $('#dq'); i.focus(); i.setSelectionRange(i.value.length, i.value.length); }, 220); };
+  $('#dst').onchange = e => { d.status = e.target.value; renderDrill(A); };
+  $('#dz').onchange = e => { d.zone = e.target.value; renderDrill(A); };
+  $('#dc').onchange = e => { d.crit = e.target.checked; renderDrill(A); };
+  $('#db').onchange = e => { d.behind = e.target.checked; renderDrill(A); };
+  el.querySelectorAll('[data-sort]').forEach(th => th.onclick = () => { const k = th.dataset.sort; if (d.sort === k) d.dir *= -1; else { d.sort = k; d.dir = ['var', 'pc'].includes(k) ? -1 : 1; } renderDrill(A); });
+  el.querySelectorAll('[data-id]').forEach(tr => tr.onclick = () => { d.sel = d.sel === tr.dataset.id ? null : tr.dataset.id; el.querySelectorAll('[data-id]').forEach(x => x.classList.toggle('sel', x.dataset.id === d.sel)); showDetail(A); });
+  if ($('#more')) $('#more').onclick = () => { d.limit += 300; renderDrill(A); };
+  showDetail(A);
+}
+
+function showDetail(A) {
+  const host = $('#detail'), id = ST.drill.sel, r = id && A.byId.get(id);
+  if (!r) { host.innerHTML = ''; return; }
+  const t = r.t;
+  const relRow = (rel, otherId, dir) => { const o = A.byId.get(otherId); if (!o) return ''; const lag = rel.lag ? ` ${rel.lag > 0 ? '+' : ''}${Math.round(rel.lag / (o.t.dh || 8))}d` : '';
+    return `<tr class="click" data-jump="${esc(otherId)}"><td class="code">${esc(o.t.code)}</td><td>${esc(o.t.name)}</td><td class="m">${rel.type}${lag}</td><td class="n">${fmtDs(dir === 'p' ? o.fFin : (o.t.as || o.rs || o.t.start))}</td><td class="n">${o.tfd == null ? '—' : Math.round(o.tfd) + ' d'}</td></tr>`; };
+  const preds = A.pred.get(id) || [], succs = A.succ.get(id) || [];
+  const wb = A.L.wbsPath(t.wbs).map(w => w.name).join(' › ');
+  const codes = Object.entries(A.L.codes).filter(([k, m]) => m[id]).map(([k, m]) => `<span>${esc(k)}</span><span>${esc(m[id])}</span>`).join('');
+  host.innerHTML = `<div class="panel detail" style="background:var(--panel2);margin-bottom:12px">
+    <div class="ph"><h3><span class="code b">${esc(t.code)}</span> ${esc(t.name)}</h3><button class="btn" id="closeDet">Close</button></div>
+    <div class="grid g11" style="margin-top:0">
+      <div class="kv"><span>WBS</span><span>${esc(wb || '—')}</span><span>Status</span><span>${t.status.replace('TK_', '')} · ${pct(t.pct, 0)}</span><span>Baseline</span><span>${fmtDs(r.ps)} → ${fmtDs(r.pe)}</span>
+        <span>${t.status === 'TK_NotStart' ? 'Forecast' : 'Actual / forecast'}</span><span>${fmtDs(t.as || r.rs || t.start)} → ${fmtDs(r.fFin)}</span><span>Finish variance</span><span class="${r.varFin > 0 ? 'r' : ''}">${dayStr(r.varFin)}</span>
+        <span>Total float</span><span>${r.tfd == null ? '—' : Math.round(r.tfd) + ' d'}${A.critIds.has(id) ? ' · <span class="a">longest path</span>' : ''}</span>${t.cstr ? `<span>Constraint</span><span>${esc(t.cstr.replace('CS_', ''))}</span>` : ''}${codes}</div>
+      <div><div class="hint">PREDECESSORS (${preds.length})</div><div class="tscroll"><table><tbody>${preds.map(p => relRow(p, p.from, 'p')).join('') || '<tr><td class="m">None</td></tr>'}</tbody></table></div>
+        <div class="hint" style="margin-top:8px">SUCCESSORS (${succs.length})</div><div class="tscroll"><table><tbody>${succs.map(s => relRow(s, s.to, 's')).join('') || '<tr><td class="m">None</td></tr>'}</tbody></table></div></div>
+    </div></div>`;
+  $('#closeDet').onclick = () => { ST.drill.sel = null; renderDrill(A); };
+  host.querySelectorAll('[data-jump]').forEach(tr => tr.onclick = () => goDrill({ sel: tr.dataset.jump }));
+}
+
+function renderMs(A) {
+  const h = ST.hist, DD = A.DD;
+  const ms = A.rows.filter(r => r.t.isMile).map(r => {
+    const trend = h.filter(s => s.ms && s.ms[r.t.code] && r.bFin).map(s => [s.dd, days(s.ms[r.t.code], r.bFin)]);
+    const prevS = h.filter(s => s.dd < DD).pop();
+    const prevVar = prevS && prevS.ms && prevS.ms[r.t.code] && r.bFin ? days(prevS.ms[r.t.code], r.bFin) : null;
+    return { ...r, trend, mv: prevVar != null && r.varFin != null ? r.varFin - prevVar : null };
+  }).sort((a, b) => (a.fFin || 0) - (b.fFin || 0));
+  const spark = tr => { if (tr.length < 2) return '<span class="m">—</span>'; const lo = Math.min(0, ...tr.map(p => p[1])), hi = Math.max(1, ...tr.map(p => p[1])); const w = 70, hh = 18;
+    const pts = tr.map((p, i) => `${(i / (tr.length - 1) * w).toFixed(1)},${(hh - (p[1] - lo) / (hi - lo) * hh).toFixed(1)}`).join(' ');
+    return `<svg width="${w}" height="${hh}" style="vertical-align:middle"><line x1="0" x2="${w}" y1="${hh - (0 - lo) / (hi - lo) * hh}" y2="${hh - (0 - lo) / (hi - lo) * hh}" stroke="#3a4a6e"/><polyline points="${pts}" fill="none" stroke="${tr[tr.length - 1][1] > 0 ? '#f0506e' : '#34d399'}" stroke-width="1.6"/></svg>`; };
+  const open = ms.filter(m => m.t.status !== 'TK_Complete');
+  const pick = open.filter(m => m.trend.length).sort((a, b) => (b.varFin || 0) - (a.varFin || 0)).slice(0, 6);
+  const pal = ['#f0506e', '#fbbf24', '#38bdf8', '#a78bfa', '#34d399', '#fb7185'];
+  // recovery
+  const remaining = 1 - A.earned, wkLeft = A.cFinish ? (A.cFinish - DD) / (7 * DAY) : null;
+  const reqRate = wkLeft > 0 ? remaining / wkLeft : null;
+  const prev8 = h.filter(s => s.dd < DD && s.dd >= DD - 120 * DAY)[0];
+  let achRate = null, achSrc = '';
+  if (prev8 && DD > prev8.dd) { achRate = (A.earned - prev8.act) / ((DD - prev8.dd) / (7 * DAY)); achSrc = 'from updates since ' + fmtDs(prev8.dd); }
+  else { achRate = (A.earned - A.actAt(DD - 56 * DAY)) / 8; achSrc = 'last 8 weeks, from actual dates'; }
+  const planRate = (A.planAt(DD + 56 * DAY) - A.planE) / 8;
+  const factor = reqRate != null && achRate > 0 ? reqRate / achRate : null;
+  const near = num(A.S.near) || 10;
+  const inc = A.rows.filter(r => r.t.status !== 'TK_Complete' && r.tfd != null);
+  const bands = [['Negative', r => r.tfd < 0, 'var(--red)'], ['0 days', r => r.tfd >= 0 && r.tfd < 0.5, 'var(--red)'], [`1 to ${near} d`, r => r.tfd >= 0.5 && r.tfd <= near, 'var(--amber)'],
+    [`${near + 1} to ${near * 3} d`, r => r.tfd > near && r.tfd <= near * 3, 'var(--blue)'], [`over ${near * 3} d`, r => r.tfd > near * 3, 'var(--plan2)']].map(b => ({ n: b[0], c: b[2], v: inc.filter(b[1]).length }));
+  const bmax = Math.max(1, ...bands.map(b => b.v));
+  const fcRate = A.ff > DD ? remaining / ((A.ff - DD) / (7 * DAY)) : null;
+  const el = $('#tab-ms');
+  el.innerHTML = `
+  <div class="mini">
+    <div class="panel"><div class="hint">Milestones</div><div class="big">${ms.length}</div><div class="hint">${ms.length - open.length} achieved, ${open.filter(m => m.varFin > 0).length} forecast late</div></div>
+    <div class="panel"><div class="hint">Delay to recover</div><div class="big ${A.delay > 0 ? 'r' : 'g'}">${A.delay == null ? '—' : Math.max(0, A.delay) + ' d'}</div><div class="hint">forecast vs contract completion</div></div>
+    <div class="panel"><div class="hint">Required progress / week</div><div class="big ${factor > 1.1 ? 'r' : factor > 1 ? 'a' : 'g'}">${reqRate == null ? '—' : pct(reqRate, 2)}</div><div class="hint">to finish ${pct(remaining, 1)} left by contract date</div></div>
+    <div class="panel"><div class="hint">Achieved progress / week</div><div class="big b">${achRate == null ? '—' : pct(achRate, 2)}</div><div class="hint">${esc(achSrc)}</div></div>
+    <div class="panel"><div class="hint">Recovery factor</div><div class="big ${factor > 1.1 ? 'r' : factor > 1 ? 'a' : 'g'}">${factor == null ? '—' : factor.toFixed(2) + '×'}</div><div class="hint">required ÷ achieved rate</div></div>
+  </div>
+  <div class="grid g11">
+    <div class="panel"><div class="ph"><h3>Milestone slip trend</h3><span class="hint">days vs baseline, per update</span></div>
+      <div class="chart" id="cM"></div>
+      <div class="legend">${pick.map((m, i) => `<span><i style="background:${pal[i]}"></i>${esc(m.t.code)}</span>`).join('') || '<span>Open milestones with a baseline appear here once updates are loaded.</span>'}</div>
+    </div>
+    <div class="panel"><div class="ph"><h3>Recovery outlook</h3><span class="hint">progress rates, % of total project per week</span></div>
+      <div class="kv" style="font-size:13px"><span>Planned rate, next 8 weeks</span><span>${pct(planRate, 2)}</span><span>Rate to hit contract date</span><span class="${factor > 1 ? 'r' : ''}">${pct(reqRate, 2)}</span><span>Rate implied by current forecast</span><span>${pct(fcRate, 2)}</span><span>Recently achieved</span><span class="b">${pct(achRate, 2)}</span></div>
+      <div class="hint" style="margin:12px 0 6px">FLOAT ON OPEN ACTIVITIES. Near critical work (amber) is where the next slip usually comes from.</div>
+      ${bands.map(b => `<div style="display:grid;grid-template-columns:90px 1fr 50px;gap:8px;align-items:center;font-size:12px;margin:4px 0"><span class="m">${b.n}</span><div style="height:12px;background:#18233c;border-radius:3px"><div style="height:100%;width:${b.v / bmax * 100}%;background:${b.c};border-radius:3px"></div></div><b style="text-align:right">${b.v}</b></div>`).join('')}
+    </div>
+  </div>
+  <div class="panel" style="margin-top:10px"><div class="ph"><h3>Milestones</h3><span class="hint">Click a row for its logic</span></div>
+    ${ms.length ? `<div class="tscroll"><table><thead><tr><th>ID</th><th>Milestone</th><th class="n">Baseline</th><th class="n">Forecast / actual</th><th class="n">Variance</th><th class="n">This update</th><th>Trend</th><th class="n">Float</th><th>Status</th></tr></thead><tbody>
+    ${ms.map(m => `<tr class="click" data-open="${esc(m.t.id)}"><td class="code">${esc(m.t.code)}</td><td>${esc(m.t.name)}</td><td class="n">${fmtDs(m.bFin)}</td><td class="n">${fmtDs(m.fFin)}</td><td class="n"><b class="${m.varFin > 0 ? 'r' : m.varFin < 0 ? 'g' : ''}">${dayStr(m.varFin)}</b></td><td class="n ${m.mv > 0 ? 'r' : m.mv < 0 ? 'g' : 'm'}">${m.mv == null ? '—' : m.mv > 0 ? '▼ ' + m.mv + ' d' : m.mv < 0 ? '▲ ' + (-m.mv) + ' d' : '0'}</td><td>${spark(m.trend)}</td><td class="n">${m.t.status === 'TK_Complete' || m.tfd == null ? '—' : Math.round(m.tfd) + ' d'}</td><td>${m.t.status === 'TK_Complete' ? '<span class="pill c">Achieved</span>' : m.varFin > 0 ? '<span class="pill k">Late</span>' : '<span class="pill i">On track</span>'}</td></tr>`).join('')}
+    </tbody></table></div>` : '<div class="empty">No milestone activities (start or finish milestones) found in the live programme.</div>'}
+  </div>`;
+  const allT = pick.flatMap(m => m.trend.map(p => p[0]));
+  lineChart($('#cM'), { x0: allT.length ? Math.min(...allT) : DD - 30 * DAY, x1: allT.length > 1 ? Math.max(...allT) : DD + 30 * DAY, h: 240, yTicks: 5, xFmt: fmtDs, label: 'Milestone slip trend',
+    series: pick.map((m, i) => ({ name: m.t.code, c: pal[i], pts: m.trend, dots: true })), yFmt: v => v + ' d' });
+  el.querySelectorAll('[data-open]').forEach(b => b.onclick = () => goDrill({ sel: b.dataset.open }));
+}
+
+/* ================================================================ loading */
+async function readFile(f) { return decodeBuf(await f.arrayBuffer()); }
+function modelFrom(text, name) { return buildModel(parseXER(text), name); }
+const msg = t => $('#loadMsg').innerHTML = t;
+
+async function loadLive(entries, remember) {
+  const ok = [];
+  for (const e of entries) {
+    try { const m = modelFrom(e.text, e.name); ST.lives = ST.lives.filter(x => !(x.dataDate === m.dataDate && x.code === m.code)); ST.lives.push(m); ok.push(e); }
+    catch (err) { msg(`<span class="r">${esc(err.message)}</span>`); }
+  }
+  if (ST.lives.length) {
+    const codes = {}; ST.lives.forEach(l => codes[l.code] = (codes[l.code] || 0) + 1);
+    const latest = ST.lives.slice().sort((a, b) => a.dataDate - b.dataDate).pop();
+    ST.lives = ST.lives.filter(l => l.code === latest.code);
+  }
+  $('#fnLive').textContent = ST.lives.map(l => l.file + ' (' + fmtD(l.dataDate) + ')').join(', ');
+  if (remember && ok.length) { const latest = ok[ok.length - 1]; await idb.put('live', { name: latest.name, text: latest.text }); }
+  return ok.length;
+}
+async function loadBase(e, remember) {
+  try { ST.base = modelFrom(e.text, e.name); $('#fnBase').textContent = e.name + ' (' + ST.base.tasks.length.toLocaleString() + ' activities)'; if (remember) await idb.put('base', { name: e.name, text: e.text }); return true; }
+  catch (err) { msg(`<span class="r">${esc(err.message)}</span>`); return false; }
+}
+
+async function onLiveFiles(files) {
+  if (!files || !files.length) return;
+  msg('Reading ' + files.length + ' file(s)…');
+  const entries = []; for (const f of files) entries.push({ name: f.name, text: await readFile(f) });
+  await new Promise(r => setTimeout(r, 10));
+  const n = await loadLive(entries, $('#remember').checked);
+  if (n) { msg(`<span class="g">Loaded ${n} live update(s).</span>${ST.base ? '' : ' Add a baseline for planned curves, or view now.'}`); recompute(); }
+}
+async function onBaseFile(files) {
+  if (!files || !files.length) return;
+  msg('Reading baseline…');
+  if (await loadBase({ name: files[0].name, text: await readFile(files[0]) }, $('#remember').checked)) {
+    msg('<span class="g">Baseline loaded.</span>' + (ST.lives.length ? '' : ' Now add the live XER.'));
+    if (ST.lives.length) recompute();
+  }
+}
+
+function showIntake(on) {
+  $('#intake').style.display = on ? '' : 'none';
+  $('#dash').style.display = on || !ST.A ? 'none' : '';
+  $('#actions').style.display = ST.A ? 'flex' : 'none';
+  $('#closeIntake').style.display = ST.A ? '' : 'none';
+}
+function switchTab(t) {
+  ST.tab = t;
+  document.querySelectorAll('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === t));
+  document.querySelectorAll('section.tab').forEach(s => s.style.display = s.id === 'tab-' + t ? '' : 'none');
+  render(); window.scrollTo({ top: 0 });
+}
+
+/* ================================================================ demo */
+function mulberry32(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function demoXERs() {
+  const rnd = mulberry32(11), start = new Date(2026, 0, 22, 8).getTime();
+  const zones = [{ c: 'SUB', n: 'Sub-Structure', k: 24, inf: 1.03 }, { c: 'GFP', n: 'Ground Floor and Podiums', k: 36, inf: 1.16 }, { c: 'TWR', n: 'Tower', k: 66, inf: 1.10 }, { c: 'MEP', n: 'MEP Services', k: 36, inf: 1.2 }, { c: 'FIN', n: 'Finishes and External Works', k: 36, inf: 1.12 }];
+  const trades = ['Structure', 'Envelope', 'Fit-out'];
+  const T = [], R = []; let tid = 1000;
+  const add = (code, name, zone, dur, type, trade) => { const t = { id: String(tid++), code, name, zone, dur, type: type || 'TT_Task', trade, preds: [], noise: rnd(), cost: type ? 0 : Math.round(dur * (60000 + rnd() * 220000)) }; T.push(t); return t; };
+  const link = (p, s, lag) => s.preds.push({ p, lag: lag || 0 });
+  const ntp = add('KD00', 'Notice to proceed', null, 0, 'TT_Mile');
+  const zms = []; let prevZone = null;
+  zones.forEach((z, zi) => {
+    const rows = z.k / 3, grid = [];
+    for (let tr = 0; tr < 3; tr++) { grid[tr] = [];
+      for (let i = 0; i < rows; i++) {
+        const t = add(`${z.c}${tr + 1}${String((i + 1) * 10).padStart(3, '0')}`, `${z.n} · ${trades[tr]} · Area ${i + 1}`, zi, 6 + Math.floor(rnd() * 16), null, tr);
+        if (i > 0) link(grid[tr][i - 1], t); else if (tr === 0) link(prevZone ? prevZone[0][Math.floor(prevZone[0].length * .45)] : ntp, t);
+        if (tr > 0) link(grid[tr - 1][i], t, tr === 2 ? 3 : 0);
+        grid[tr].push(t);
+      } }
+    const m = add(`KD${String(zi + 1).padStart(2, '0')}`, `${z.n} complete`, zi, 0, 'TT_FinMile');
+    grid.forEach(g => link(g[g.length - 1], m)); zms.push(m); prevZone = grid;
+  });
+  const pc = add('KD99', 'Practical completion', null, 0, 'TT_FinMile'); zms.forEach(m => link(m, pc));
+  const fp = (DD) => {
+    const S = new Map();
+    for (const t of T) {
+      let es = start; for (const { p, lag } of t.preds) es = Math.max(es, S.get(p.id).ef + lag * DAY);
+      let dur = t.dur, st = 'TK_NotStart', as = null, af = null, pct = 0;
+      if (DD != null && (es < DD || (t.dur === 0 && es <= DD))) { dur = t.dur * zones[t.zone == null ? 0 : t.zone].inf * (0.9 + t.noise * 0.35); as = es; }
+      else if (DD != null) es = Math.max(es, DD);
+      const ef = es + dur * DAY;
+      if (as != null) { if (ef <= DD) { st = 'TK_Complete'; af = ef; pct = 1; } else { st = 'TK_Active'; pct = (DD - as) / (ef - as); } }
+      S.set(t.id, { es, ef, dur, st, as, af, pct });
+    }
+    return S;
+  };
+  const base = fp(null), cFin = base.get(pc.id).ef;
+  const bp = (S, fin) => {
+    const succ = new Map(); T.forEach(t => t.preds.forEach(({ p, lag }) => (succ.get(p.id) || succ.set(p.id, []).get(p.id)).push({ s: t, lag })));
+    for (let i = T.length - 1; i >= 0; i--) { const t = T[i], o = S.get(t.id); let lf = fin; for (const { s, lag } of succ.get(t.id) || []) lf = Math.min(lf, S.get(s.id).ls - lag * DAY); o.lf = lf; o.ls = lf - (o.st === 'TK_Active' ? o.ef - Math.max(o.es, o.dd || o.es) : o.dur * DAY); o.tf = (o.lf - o.ef) / DAY; }
+  };
+  bp(base, cFin);
+  const f = t => { if (t == null) return ''; const d = new Date(t); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; };
+  const write = (S, DD) => {
+    const tb = {};
+    const W = [{ wbs_id: '1', proj_id: '1', parent_wbs_id: '', wbs_short_name: 'RB', wbs_name: 'Residential Building (demo)', proj_node_flag: 'Y' }, { wbs_id: '2', proj_id: '1', parent_wbs_id: '1', wbs_short_name: 'KD', wbs_name: 'Key Dates', proj_node_flag: 'N' }]
+      .concat(zones.map((z, i) => ({ wbs_id: String(10 + i), proj_id: '1', parent_wbs_id: '1', wbs_short_name: z.c, wbs_name: z.n, proj_node_flag: 'N' })));
+    const fin = Math.max(...T.map(t => S.get(t.id).ef));
+    tb.PROJECT = [{ proj_id: '1', proj_short_name: 'DEMO-RB-01', last_recalc_date: f(DD || start), plan_start_date: f(start), plan_end_date: f(cFin), scd_end_date: f(fin) }];
+    tb.CALENDAR = [{ clndr_id: '1', clndr_name: '7 day', day_hr_cnt: '8' }];
+    tb.PROJWBS = W;
+    tb.TASK = T.map(t => { const o = S.get(t.id), b = base.get(t.id); return { task_id: t.id, proj_id: '1', wbs_id: t.zone == null ? '2' : String(10 + t.zone), clndr_id: '1', task_code: t.code, task_name: t.name, task_type: t.type, status_code: o.st, complete_pct_type: 'CP_Phys', phys_complete_pct: (o.pct * 100).toFixed(1),
+      target_drtn_hr_cnt: t.dur * 8, remain_drtn_hr_cnt: o.st === 'TK_Complete' ? 0 : Math.round((o.ef - Math.max(o.es, DD || o.es)) / DAY * 8), total_float_hr_cnt: o.st === 'TK_Complete' ? '' : Math.round(o.tf * 8),
+      act_start_date: f(o.as), act_end_date: f(o.af), early_start_date: f(o.st === 'TK_Active' ? DD : o.es), early_end_date: f(o.ef), late_start_date: f(o.ls), late_end_date: f(o.lf),
+      target_start_date: f(b.es), target_end_date: f(b.ef), restart_date: f(o.st === 'TK_Active' ? DD : null), reend_date: f(o.st === 'TK_Active' ? o.ef : null), cstr_type: '', driving_path_flag: '' }; });
+    tb.TASKPRED = []; let k = 1; T.forEach(t => t.preds.forEach(({ p, lag }) => tb.TASKPRED.push({ task_pred_id: String(k++), task_id: t.id, pred_task_id: p.id, proj_id: '1', pred_proj_id: '1', pred_type: 'PR_FS', lag_hr_cnt: lag * 8 })));
+    tb.TASKRSRC = T.filter(t => t.cost).map((t, i) => ({ taskrsrc_id: String(i + 1), task_id: t.id, proj_id: '1', target_cost: t.cost, remain_cost: '', act_reg_cost: '' }));
+    tb.ACTVTYPE = [{ actv_code_type_id: '1', actv_code_type: 'Trade' }];
+    tb.ACTVCODE = trades.map((n, i) => ({ actv_code_id: String(i + 1), actv_code_type_id: '1', short_name: n.slice(0, 3).toUpperCase(), actv_code_name: n }));
+    tb.TASKACTV = T.filter(t => t.trade != null).map(t => ({ task_id: t.id, actv_code_type_id: '1', actv_code_id: String(t.trade + 1), proj_id: '1' }));
+    let s = 'ERMHDR\t19.12\t2026-01-01\tProject\tdemo\tdemo\tdbxDatabaseNoName\tProject Management\tUSD\n';
+    for (const [n, rows] of Object.entries(tb)) { const fl = Object.keys(rows[0]); s += `%T\t${n}\n%F\t${fl.join('\t')}\n`; rows.forEach(r => s += `%R\t${fl.map(x => r[x] ?? '').join('\t')}\n`); }
+    return s + '%E\n';
+  };
+  const out = { base: write(base, null), lives: [] };
+  for (let k = 0; k < 8; k++) { const DD = start + (6 + 4 * k) * 7 * DAY; const S = fp(DD); S.forEach(o => o.dd = DD); bp(S, cFin); out.lives.push({ name: `demo-update-${k + 1}.xer`, text: write(S, DD) }); }
+  return out;
+}
+
+/* ================================================================ wiring */
+function bindDrop(zone, input, handler) {
+  input.addEventListener('change', e => handler(e.target.files));
+  ['dragenter', 'dragover'].forEach(ev => zone.addEventListener(ev, e => { e.preventDefault(); zone.classList.add('over'); }));
+  ['dragleave', 'drop'].forEach(ev => zone.addEventListener(ev, e => { e.preventDefault(); zone.classList.remove('over'); }));
+  zone.addEventListener('drop', e => handler(e.dataTransfer.files));
+}
+bindDrop($('#dropLive'), $('#fileLive'), onLiveFiles);
+bindDrop($('#dropBase'), $('#fileBase'), onBaseFile);
+$('#demoBtn').onclick = async () => {
+  msg('Building demo programme…'); await new Promise(r => setTimeout(r, 20));
+  const d = demoXERs(); await loadBase({ name: 'demo-baseline.xer', text: d.base }, false); await loadLive(d.lives, false);
+  msg('<span class="g">Demo loaded: 1 baseline and 8 monthly updates.</span>'); recompute();
+};
+$('#forgetBtn').onclick = async () => { await idb.del('base'); await idb.del('live'); toast('Saved files removed from this device'); };
+$('#closeIntake').onclick = () => showIntake(false);
+$('#filesBtn').onclick = () => showIntake(true);
+$('#printBtn').onclick = () => { document.querySelectorAll('section.tab').forEach(s => { if (s.id !== 'tab-' + ST.tab) { const t = ST.tab; ST.tab = s.id.slice(4); render(); ST.tab = t; } }); setTimeout(() => window.print(), 100); };
+$('#weightSel').onchange = e => { ST.weight = e.target.value; store.set('weight', ST.weight); recompute(); };
+document.querySelectorAll('#tabs button').forEach(b => b.onclick = () => switchTab(b.dataset.tab));
+$('#setBtn').onclick = () => {
+  const A = ST.A, S = A.S;
+  $('#sTitle').value = S.title || ''; $('#sStart').value = S.start || ''; $('#sFinish').value = S.finish || '';
+  $('#sStart').placeholder = isoD(A.cStart); $('#sFinish').placeholder = isoD(A.cFinish);
+  $('#sAmount').value = S.amount || ''; $('#sCur').value = S.cur || ''; $('#sNear').value = S.near || 10; $('#sHist').value = 'keep';
+  $('#setModal').classList.add('on');
+};
+$('#sCancel').onclick = () => $('#setModal').classList.remove('on');
+$('#sSave').onclick = () => {
+  const code = ST.A.L.code;
+  store.set('settings.' + code, { title: $('#sTitle').value.trim(), start: $('#sStart').value, finish: $('#sFinish').value, amount: $('#sAmount').value, cur: $('#sCur').value.trim(), near: $('#sNear').value });
+  if ($('#sHist').value === 'clear') store.del(histKey(code));
+  $('#setModal').classList.remove('on'); recompute(); toast('Settings saved');
+};
+let rz; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { if (ST.A && $('#dash').style.display !== 'none') render(); }, 200); });
+
+(async function boot() {
+  const [b, l] = await Promise.all([idb.get('base'), idb.get('live')]);
+  if (b) await loadBase(b, false);
+  if (l) { await loadLive([l], false); if (ST.lives.length) { msg('Restored the files saved on this device. Load a newer live XER any time.'); recompute(); } }
+})();
+</script>
+</body>
+</html>
